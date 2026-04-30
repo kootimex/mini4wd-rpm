@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Mini RPM" />
+  <title>Mini4WD RPM Checker</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #111;
+      min-height: 100vh;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header h1 { font-size: 18px; font-weight: 600; }
+    header span { font-size: 13px; color: #888; }
+    .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+    .rpm-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 20px 20px;
+      text-align: center;
+      margin-bottom: 12px;
+      border: 1px solid #eee;
+    }
+    .rpm-label { font-size: 13px; color: #888; margin-bottom: 6px; }
+    .rpm-number { font-size: 64px; font-weight: 600; color: #111; line-height: 1; }
+    .rpm-unit { font-size: 16px; color: #888; margin-top: 4px; }
+    .hz-display { font-size: 24px; font-weight: 500; color: #1D9E75; margin-top: 10px; }
+    .hz-unit { font-size: 15px; color: #888; font-weight: 400; }
+    .status-badge {
+      display: inline-block;
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 99px;
+      margin-top: 14px;
+      font-weight: 500;
+    }
+    .s-idle { background: #f0f0f0; color: #888; }
+    .s-listening { background: #e8f5e9; color: #2e7d32; }
+    .s-detected { background: #e0f2f1; color: #00695c; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      border: 1px solid #eee;
+    }
+    .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+    .stat-value { font-size: 22px; font-weight: 600; color: #111; }
+    .stat-sub { font-size: 12px; color: #1D9E75; margin-top: 3px; }
+
+    .wave-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #eee;
+    }
+    canvas { width: 100%; height: 64px; display: block; }
+
+    .btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .btn-start {
+      flex: 1;
+      padding: 15px;
+      border-radius: 12px;
+      border: none;
+      background: #1D9E75;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-start:active { background: #157a5b; }
+    .btn-start.active { background: #e53935; }
+    .btn-start.active:active { background: #b71c1c; }
+    .btn-reset {
+      padding: 15px 18px;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      font-size: 14px;
+      color: #555;
+      cursor: pointer;
+    }
+    .btn-reset:active { background: #f5f5f5; }
+
+    .motor-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #eee;
+    }
+    .section-title { font-size: 12px; color: #888; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .motor-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 4px 0; }
+    .motor-name { color: #555; }
+    .motor-vals { text-align: right; }
+    .motor-rpm-val { font-weight: 600; color: #111; }
+    .motor-hz-val { font-size: 11px; color: #1D9E75; }
+    .motor-bar { height: 4px; background: #f0f0f0; border-radius: 2px; margin: 4px 0 8px; overflow: hidden; }
+    .motor-fill { height: 100%; border-radius: 2px; background: #1D9E75; }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Mini4WD RPM</h1>
+    <span>마이크 소리 분석</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="rpm-card">
+    <div class="rpm-label">현재 RPM</div>
+    <div class="rpm-number" id="rpmVal">—</div>
+    <div class="rpm-unit">RPM</div>
+    <div class="hz-display" id="hzVal">— <span class="hz-unit">Hz</span></div>
+    <div><span class="status-badge s-idle" id="statusBadge">대기 중</span></div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">최대 RPM</div>
+      <div class="stat-value" id="maxRpm">—</div>
+      <div class="stat-sub" id="maxHz">— Hz</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">평균 RPM</div>
+      <div class="stat-value" id="avgRpm">—</div>
+      <div class="stat-sub" id="avgHz">— Hz</div>
+    </div>
+  </div>
+
+  <div class="wave-card">
+    <canvas id="waveform"></canvas>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-start" id="startBtn" onclick="toggleMic()">마이크 시작</button>
+    <button class="btn-reset" onclick="resetStats()">초기화</button>
+  </div>
+
+  <div class="motor-card">
+    <div class="section-title">타미야 모터 참고 RPM (무부하)</div>
+    <div id="motorList"></div>
+  </div>
+</div>
+
+<script>
+const motors = [
+  { name: "Mabuchi FA-130", rpm: 14300 },
+  { name: "Rev Tuned 2", rpm: 17300 },
+  { name: "Atomic Tune 2", rpm: 20900 },
+  { name: "Hyper Dash 3", rpm: 25600 },
+  { name: "Plasma Dash", rpm: 31300 },
+];
+const maxRef = 32000;
+const motorList = document.getElementById("motorList");
+motors.forEach(m => {
+  const pct = Math.round(m.rpm / maxRef * 100);
+  const hz = Math.round(m.rpm / 60);
+  motorList.innerHTML += `
+    <div class="motor-row">
+      <span class="motor-name">${m.name}</span>
+      <div class="motor-vals">
+        <div class="motor-rpm-val">${m.rpm.toLocaleString()} RPM</div>
+        <div class="motor-hz-val">${hz} Hz</div>
+      </div>
+    </div>
+    <div class="motor-bar"><div class="motor-fill" style="width:${pct}%"></div></div>
+  `;
+});
+
+let audioCtx, analyser, source, animId;
+let isRunning = false;
+let maxRpm = 0, maxHz = 0;
+let rpmHistory = [], hzHistory = [], lastRpm = 0, lastHz = 0;
+
+const canvas = document.getElementById("waveform");
+const ctx2d = canvas.getContext("2d");
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = 64 * window.devicePixelRatio;
+  ctx2d.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function dominantFreq(analyser, sampleRate) {
+  const buf = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(buf);
+  let maxVal = 0, maxIdx = 0;
+  const minBin = Math.floor(100 * analyser.fftSize / sampleRate);
+  const maxBin = Math.floor(5000 * analyser.fftSize / sampleRate);
+  for (let i = minBin; i < maxBin; i++) {
+    if (buf[i] > maxVal) { maxVal = buf[i]; maxIdx = i; }
+  }
+  if (maxVal < 30) return 0;
+  return maxIdx * sampleRate / analyser.fftSize;
+}
+
+function drawWave() {
+  const buf = new Uint8Array(analyser.fftSize);
+  analyser.getByteTimeDomainData(buf);
+  const w = canvas.offsetWidth, h = 64;
+  ctx2d.clearRect(0, 0, w, h);
+  ctx2d.beginPath();
+  ctx2d.strokeStyle = "#1D9E75";
+  ctx2d.lineWidth = 1.5;
+  const slice = w / buf.length;
+  let x = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const y = (buf[i] / 128.0) * h / 2;
+    i === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
+    x += slice;
+  }
+  ctx2d.stroke();
+}
+
+function loop() {
+  if (!isRunning) return;
+  drawWave();
+  const freq = dominantFreq(analyser, audioCtx.sampleRate);
+  if (freq > 0) {
+    const rpm = Math.round(freq * 60);
+    if (rpm > 5000 && rpm < 50000) {
+      lastRpm = rpm;
+      lastHz = Math.round(freq * 10) / 10;
+      rpmHistory.push(rpm);
+      hzHistory.push(lastHz);
+      if (rpmHistory.length > 30) { rpmHistory.shift(); hzHistory.shift(); }
+      if (rpm > maxRpm) { maxRpm = rpm; maxHz = lastHz; }
+    }
+  }
+
+  document.getElementById("rpmVal").textContent = lastRpm > 0 ? lastRpm.toLocaleString() : "—";
+  document.getElementById("hzVal").innerHTML = lastHz > 0 ? `${lastHz.toFixed(1)} <span class="hz-unit">Hz</span>` : `— <span class="hz-unit">Hz</span>`;
+  document.getElementById("maxRpm").textContent = maxRpm > 0 ? maxRpm.toLocaleString() : "—";
+  document.getElementById("maxHz").textContent = maxHz > 0 ? `${maxHz.toFixed(1)} Hz` : "— Hz";
+  if (rpmHistory.length > 0) {
+    const aRpm = Math.round(rpmHistory.reduce((a,b)=>a+b,0)/rpmHistory.length);
+    const aHz = (hzHistory.reduce((a,b)=>a+b,0)/hzHistory.length).toFixed(1);
+    document.getElementById("avgRpm").textContent = aRpm.toLocaleString();
+    document.getElementById("avgHz").textContent = `${aHz} Hz`;
+  }
+
+  const badge = document.getElementById("statusBadge");
+  if (lastRpm > 0) {
+    badge.textContent = "감지됨";
+    badge.className = "status-badge s-detected";
+  } else {
+    badge.textContent = "청취 중...";
+    badge.className = "status-badge s-listening";
+  }
+
+  animId = requestAnimationFrame(loop);
+}
+
+async function toggleMic() {
+  if (isRunning) {
+    isRunning = false;
+    cancelAnimationFrame(animId);
+    if (source) source.disconnect();
+    if (audioCtx) audioCtx.close();
+    document.getElementById("startBtn").textContent = "마이크 시작";
+    document.getElementById("startBtn").classList.remove("active");
+    document.getElementById("statusBadge").textContent = "대기 중";
+    document.getElementById("statusBadge").className = "status-badge s-idle";
+    ctx2d.clearRect(0, 0, canvas.offsetWidth, 64);
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    audioCtx = new AudioContext();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 8192;
+    source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    isRunning = true;
+    document.getElementById("startBtn").textContent = "측정 중지";
+    document.getElementById("startBtn").classList.add("active");
+    loop();
+  } catch(e) {
+    alert("마이크 접근 권한이 필요합니다.\n브라우저 설정에서 마이크를 허용해 주세요.");
+  }
+}
+
+function resetStats() {
+  maxRpm = 0; maxHz = 0;
+  rpmHistory = []; hzHistory = [];
+  lastRpm = 0; lastHz = 0;
+  document.getElementById("rpmVal").textContent = "—";
+  document.getElementById("hzVal").innerHTML = `— <span class="hz-unit">Hz</span>`;
+  document.getElementById("maxRpm").textContent = "—";
+  document.getElementById("maxHz").textContent = "— Hz";
+  document.getElementById("avgRpm").textContent = "—";
+  document.getElementById("avgHz").textContent = "— Hz";
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

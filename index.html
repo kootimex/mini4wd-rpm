@@ -22,9 +22,6 @@
       background: #fff;
       border-bottom: 1px solid #e5e5e5;
       padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
     header h1 { font-size: 18px; font-weight: 600; }
     header span { font-size: 13px; color: #888; }
@@ -38,11 +35,11 @@
       margin-bottom: 12px;
       border: 1px solid #eee;
     }
-    .rpm-label { font-size: 13px; color: #888; margin-bottom: 6px; }
-    .rpm-number { font-size: 64px; font-weight: 600; color: #111; line-height: 1; }
-    .rpm-unit { font-size: 16px; color: #888; margin-top: 4px; }
-    .hz-display { font-size: 24px; font-weight: 500; color: #1D9E75; margin-top: 10px; }
-    .hz-unit { font-size: 15px; color: #888; font-weight: 400; }
+    .main-label { font-size: 13px; color: #888; margin-bottom: 6px; }
+    .main-number { font-size: 64px; font-weight: 600; color: #111; line-height: 1; }
+    .main-unit { font-size: 16px; color: #888; margin-top: 4px; }
+    .sub-display { font-size: 24px; font-weight: 500; color: #1D9E75; margin-top: 10px; }
+    .sub-unit { font-size: 15px; color: #888; font-weight: 400; }
     .status-badge {
       display: inline-block;
       font-size: 12px;
@@ -54,6 +51,21 @@
     .s-idle { background: #f0f0f0; color: #888; }
     .s-listening { background: #e8f5e9; color: #2e7d32; }
     .s-detected { background: #e0f2f1; color: #00695c; }
+
+    .filter-bar {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      border: 1px solid #eee;
+      font-size: 13px;
+    }
+    .filter-title { color: #888; margin-bottom: 10px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .filter-row label { color: #888; width: 30px; text-align: right; flex-shrink: 0; }
+    .filter-row input[type=range] { flex: 1; accent-color: #1D9E75; }
+    .filter-row span { width: 52px; text-align: right; font-weight: 600; color: #111; flex-shrink: 0; }
+    .filter-range-display { text-align: center; font-size: 12px; color: #1D9E75; margin-top: 4px; font-weight: 600; }
 
     .stats-grid {
       display: grid;
@@ -80,8 +92,9 @@
       border: 1px solid #eee;
     }
     canvas { width: 100%; height: 64px; display: block; }
+    .canvas-label { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; margin-top: 4px; }
 
-    .btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .btn-row { display: flex; gap: 10px; }
     .btn-start {
       flex: 1;
       padding: 15px;
@@ -92,7 +105,6 @@
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
     }
     .btn-start:active { background: #157a5b; }
     .btn-start.active { background: #e53935; }
@@ -107,174 +119,140 @@
       cursor: pointer;
     }
     .btn-reset:active { background: #f5f5f5; }
-
-    .motor-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 16px;
-      border: 1px solid #eee;
-    }
-    .section-title { font-size: 12px; color: #888; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .motor-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 4px 0; }
-    .motor-name { color: #555; }
-    .motor-vals { text-align: right; }
-    .motor-rpm-val { font-weight: 600; color: #111; }
-    .motor-hz-val { font-size: 11px; color: #1D9E75; }
-    .motor-bar { height: 4px; background: #f0f0f0; border-radius: 2px; margin: 4px 0 8px; overflow: hidden; }
-    .motor-fill { height: 100%; border-radius: 2px; background: #1D9E75; }
   </style>
 </head>
 <body>
 <header>
-  <div>
-    <h1>Mini4WD RPM</h1>
-    <span>마이크 소리 분석</span>
-  </div>
+  <h1>Mini4WD RPM</h1>
+  <span>마이크 소리 분석</span>
 </header>
 
 <div class="container">
   <div class="rpm-card">
-    <div class="rpm-label">현재 RPM</div>
-    <div class="rpm-number" id="rpmVal">—</div>
-    <div class="rpm-unit">RPM</div>
-    <div class="hz-display" id="hzVal">— <span class="hz-unit">Hz</span></div>
+    <div class="main-label">현재 Hz</div>
+    <div class="main-number" id="hzVal">—</div>
+    <div class="main-unit">Hz</div>
+    <div class="sub-display" id="rpmVal">— <span class="sub-unit">RPM</span></div>
     <div><span class="status-badge s-idle" id="statusBadge">대기 중</span></div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-title">필터 범위</div>
+    <div class="filter-row">
+      <label>최소</label>
+      <input type="range" id="minHz" min="100" max="900" step="10" value="300" oninput="updateFilter()">
+      <span id="minHzVal">300 Hz</span>
+    </div>
+    <div class="filter-row">
+      <label>최대</label>
+      <input type="range" id="maxHz" min="100" max="900" step="10" value="700" oninput="updateFilter()">
+      <span id="maxHzVal">700 Hz</span>
+    </div>
+    <div class="filter-range-display" id="filterDisplay">감지 범위: 300 ~ 700 Hz</div>
   </div>
 
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">최대 RPM</div>
-      <div class="stat-value" id="maxRpm">—</div>
-      <div class="stat-sub" id="maxHz">— Hz</div>
+      <div class="stat-label">최대 Hz</div>
+      <div class="stat-value" id="maxHzStat">—</div>
+      <div class="stat-sub" id="maxRpm">— RPM</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">평균 RPM</div>
-      <div class="stat-value" id="avgRpm">—</div>
-      <div class="stat-sub" id="avgHz">— Hz</div>
+      <div class="stat-label">평균 Hz</div>
+      <div class="stat-value" id="avgHzStat">—</div>
+      <div class="stat-sub" id="avgRpm">— RPM</div>
     </div>
   </div>
 
   <div class="wave-card">
     <canvas id="waveform"></canvas>
+    <div class="canvas-label"><span>0 Hz</span><span>600 Hz</span><span>1200 Hz</span></div>
   </div>
 
   <div class="btn-row">
     <button class="btn-start" id="startBtn" onclick="toggleMic()">마이크 시작</button>
     <button class="btn-reset" onclick="resetStats()">초기화</button>
   </div>
-
-  <div class="motor-card">
-    <div class="section-title">타미야 모터 참고 RPM (무부하)</div>
-    <div id="motorList"></div>
-  </div>
 </div>
 
 <script>
-const motors = [
-  { name: "Mabuchi FA-130", rpm: 14300 },
-  { name: "Rev Tuned 2", rpm: 17300 },
-  { name: "Atomic Tune 2", rpm: 20900 },
-  { name: "Hyper Dash 3", rpm: 25600 },
-  { name: "Plasma Dash", rpm: 31300 },
-];
-const maxRef = 32000;
-const motorList = document.getElementById("motorList");
-motors.forEach(m => {
-  const pct = Math.round(m.rpm / maxRef * 100);
-  const hz = Math.round(m.rpm / 60);
-  motorList.innerHTML += `
-    <div class="motor-row">
-      <span class="motor-name">${m.name}</span>
-      <div class="motor-vals">
-        <div class="motor-rpm-val">${m.rpm.toLocaleString()} RPM</div>
-        <div class="motor-hz-val">${hz} Hz</div>
-      </div>
-    </div>
-    <div class="motor-bar"><div class="motor-fill" style="width:${pct}%"></div></div>
-  `;
-});
-
 let audioCtx, analyser, source, animId;
 let isRunning = false;
-let maxRpm = 0, maxHz = 0;
-let rpmHistory = [], hzHistory = [], lastRpm = 0, lastHz = 0;
+let maxRpmVal = 0, maxHzStatVal = 0, rpmHistory = [], hzHistory = [], lastRpm = 0, lastHz = 0;
+let filterMin = 300, filterMax = 700;
 
 const canvas = document.getElementById("waveform");
 const ctx2d = canvas.getContext("2d");
-function resizeCanvas() {
-  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-  canvas.height = 64 * window.devicePixelRatio;
-  ctx2d.scale(window.devicePixelRatio, window.devicePixelRatio);
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+canvas.width = canvas.offsetWidth; canvas.height = 64;
 
-function dominantFreq(analyser, sampleRate) {
+function updateFilter() {
+  filterMin = parseInt(document.getElementById("minHz").value);
+  filterMax = parseInt(document.getElementById("maxHz").value);
+  if (filterMin >= filterMax) { filterMax = filterMin + 10; document.getElementById("maxHz").value = filterMax; }
+  document.getElementById("minHzVal").textContent = filterMin + " Hz";
+  document.getElementById("maxHzVal").textContent = filterMax + " Hz";
+  document.getElementById("filterDisplay").textContent = `감지 범위: ${filterMin} ~ ${filterMax} Hz`;
+}
+
+function dominantFreqInRange(analyser, sampleRate, minHz, maxHz) {
   const buf = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(buf);
+  const minBin = Math.floor(minHz * analyser.fftSize / sampleRate);
+  const maxBin = Math.ceil(maxHz * analyser.fftSize / sampleRate);
   let maxVal = 0, maxIdx = 0;
-  const minBin = Math.floor(100 * analyser.fftSize / sampleRate);
-  const maxBin = Math.floor(5000 * analyser.fftSize / sampleRate);
-  for (let i = minBin; i < maxBin; i++) {
+  for (let i = minBin; i <= maxBin && i < buf.length; i++) {
     if (buf[i] > maxVal) { maxVal = buf[i]; maxIdx = i; }
   }
-  if (maxVal < 30) return 0;
+  if (maxVal < 20) return 0;
   return maxIdx * sampleRate / analyser.fftSize;
 }
 
-function drawWave() {
-  const buf = new Uint8Array(analyser.fftSize);
-  analyser.getByteTimeDomainData(buf);
-  const w = canvas.offsetWidth, h = 64;
+function drawSpectrum() {
+  const buf = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(buf);
+  const sampleRate = audioCtx.sampleRate;
+  const w = canvas.width, h = canvas.height;
   ctx2d.clearRect(0, 0, w, h);
-  ctx2d.beginPath();
-  ctx2d.strokeStyle = "#1D9E75";
-  ctx2d.lineWidth = 1.5;
-  const slice = w / buf.length;
-  let x = 0;
-  for (let i = 0; i < buf.length; i++) {
-    const y = (buf[i] / 128.0) * h / 2;
-    i === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
-    x += slice;
+  const displayMax = 1200;
+  const maxBinDisp = Math.ceil(displayMax * analyser.fftSize / sampleRate);
+  const filterMinBin = Math.floor(filterMin * analyser.fftSize / sampleRate);
+  const filterMaxBin = Math.ceil(filterMax * analyser.fftSize / sampleRate);
+  for (let i = 0; i <= maxBinDisp && i < buf.length; i++) {
+    const x = Math.round(i / maxBinDisp * w);
+    const barH = Math.round(buf[i] / 255 * h);
+    ctx2d.fillStyle = (i >= filterMinBin && i <= filterMaxBin) ? "#1D9E75" : "rgba(150,150,150,0.25)";
+    ctx2d.fillRect(x, h - barH, 2, barH);
   }
-  ctx2d.stroke();
 }
 
 function loop() {
   if (!isRunning) return;
-  drawWave();
-  const freq = dominantFreq(analyser, audioCtx.sampleRate);
+  drawSpectrum();
+  const freq = dominantFreqInRange(analyser, audioCtx.sampleRate, filterMin, filterMax);
   if (freq > 0) {
-    const rpm = Math.round(freq * 60);
-    if (rpm > 5000 && rpm < 50000) {
-      lastRpm = rpm;
-      lastHz = Math.round(freq * 10) / 10;
-      rpmHistory.push(rpm);
-      hzHistory.push(lastHz);
-      if (rpmHistory.length > 30) { rpmHistory.shift(); hzHistory.shift(); }
-      if (rpm > maxRpm) { maxRpm = rpm; maxHz = lastHz; }
-    }
+    lastHz = Math.round(freq * 10) / 10;
+    lastRpm = Math.round(freq * 60);
+    hzHistory.push(lastHz); rpmHistory.push(lastRpm);
+    if (hzHistory.length > 30) { hzHistory.shift(); rpmHistory.shift(); }
+    if (lastRpm > maxRpmVal) { maxRpmVal = lastRpm; maxHzStatVal = lastHz; }
+  } else {
+    lastHz = 0; lastRpm = 0;
   }
 
-  document.getElementById("rpmVal").textContent = lastRpm > 0 ? lastRpm.toLocaleString() : "—";
-  document.getElementById("hzVal").innerHTML = lastHz > 0 ? `${lastHz.toFixed(1)} <span class="hz-unit">Hz</span>` : `— <span class="hz-unit">Hz</span>`;
-  document.getElementById("maxRpm").textContent = maxRpm > 0 ? maxRpm.toLocaleString() : "—";
-  document.getElementById("maxHz").textContent = maxHz > 0 ? `${maxHz.toFixed(1)} Hz` : "— Hz";
-  if (rpmHistory.length > 0) {
-    const aRpm = Math.round(rpmHistory.reduce((a,b)=>a+b,0)/rpmHistory.length);
+  document.getElementById("hzVal").textContent = lastHz > 0 ? lastHz.toFixed(1) : "—";
+  document.getElementById("rpmVal").innerHTML = lastRpm > 0 ? `${lastRpm.toLocaleString()} <span class="sub-unit">RPM</span>` : `— <span class="sub-unit">RPM</span>`;
+  document.getElementById("maxHzStat").textContent = maxHzStatVal > 0 ? maxHzStatVal.toFixed(1) : "—";
+  document.getElementById("maxRpm").textContent = maxRpmVal > 0 ? `${maxRpmVal.toLocaleString()} RPM` : "— RPM";
+  if (hzHistory.length > 0) {
     const aHz = (hzHistory.reduce((a,b)=>a+b,0)/hzHistory.length).toFixed(1);
-    document.getElementById("avgRpm").textContent = aRpm.toLocaleString();
-    document.getElementById("avgHz").textContent = `${aHz} Hz`;
+    const aRpm = Math.round(rpmHistory.reduce((a,b)=>a+b,0)/rpmHistory.length);
+    document.getElementById("avgHzStat").textContent = aHz;
+    document.getElementById("avgRpm").textContent = `${aRpm.toLocaleString()} RPM`;
   }
 
   const badge = document.getElementById("statusBadge");
-  if (lastRpm > 0) {
-    badge.textContent = "감지됨";
-    badge.className = "status-badge s-detected";
-  } else {
-    badge.textContent = "청취 중...";
-    badge.className = "status-badge s-listening";
-  }
+  if (lastHz > 0) { badge.textContent = "감지됨"; badge.className = "status-badge s-detected"; }
+  else { badge.textContent = "청취 중..."; badge.className = "status-badge s-listening"; }
 
   animId = requestAnimationFrame(loop);
 }
@@ -289,7 +267,7 @@ async function toggleMic() {
     document.getElementById("startBtn").classList.remove("active");
     document.getElementById("statusBadge").textContent = "대기 중";
     document.getElementById("statusBadge").className = "status-badge s-idle";
-    ctx2d.clearRect(0, 0, canvas.offsetWidth, 64);
+    ctx2d.clearRect(0, 0, canvas.width, canvas.height);
     return;
   }
   try {
@@ -297,8 +275,13 @@ async function toggleMic() {
     audioCtx = new AudioContext();
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 8192;
+    const biquad = audioCtx.createBiquadFilter();
+    biquad.type = "bandpass";
+    biquad.frequency.value = (filterMin + filterMax) / 2;
+    biquad.Q.value = biquad.frequency.value / (filterMax - filterMin);
     source = audioCtx.createMediaStreamSource(stream);
-    source.connect(analyser);
+    source.connect(biquad);
+    biquad.connect(analyser);
     isRunning = true;
     document.getElementById("startBtn").textContent = "측정 중지";
     document.getElementById("startBtn").classList.add("active");
@@ -309,15 +292,13 @@ async function toggleMic() {
 }
 
 function resetStats() {
-  maxRpm = 0; maxHz = 0;
-  rpmHistory = []; hzHistory = [];
-  lastRpm = 0; lastHz = 0;
-  document.getElementById("rpmVal").textContent = "—";
-  document.getElementById("hzVal").innerHTML = `— <span class="hz-unit">Hz</span>`;
-  document.getElementById("maxRpm").textContent = "—";
-  document.getElementById("maxHz").textContent = "— Hz";
-  document.getElementById("avgRpm").textContent = "—";
-  document.getElementById("avgHz").textContent = "— Hz";
+  maxRpmVal = 0; maxHzStatVal = 0; rpmHistory = []; hzHistory = []; lastRpm = 0; lastHz = 0;
+  document.getElementById("hzVal").textContent = "—";
+  document.getElementById("rpmVal").innerHTML = `— <span class="sub-unit">RPM</span>`;
+  document.getElementById("maxHzStat").textContent = "—";
+  document.getElementById("maxRpm").textContent = "— RPM";
+  document.getElementById("avgHzStat").textContent = "—";
+  document.getElementById("avgRpm").textContent = "— RPM";
 }
 
 if ('serviceWorker' in navigator) {

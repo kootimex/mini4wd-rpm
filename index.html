@@ -41,84 +41,78 @@
     .sub-display { font-size: 24px; font-weight: 500; color: #1D9E75; margin-top: 10px; }
     .sub-unit { font-size: 15px; color: #888; font-weight: 400; }
     .status-badge {
-      display: inline-block;
-      font-size: 12px;
-      padding: 5px 14px;
-      border-radius: 99px;
-      margin-top: 14px;
-      font-weight: 500;
+      display: inline-block; font-size: 12px;
+      padding: 5px 14px; border-radius: 99px;
+      margin-top: 14px; font-weight: 500;
     }
     .s-idle { background: #f0f0f0; color: #888; }
     .s-listening { background: #e8f5e9; color: #2e7d32; }
     .s-detected { background: #e0f2f1; color: #00695c; }
-
-    .filter-bar {
-      background: #fff;
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      border: 1px solid #eee;
-      font-size: 13px;
-    }
-    .filter-title { color: #888; margin-bottom: 10px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .filter-row label { color: #888; width: 30px; text-align: right; flex-shrink: 0; }
-    .filter-row input[type=range] { flex: 1; accent-color: #1D9E75; }
-    .filter-row span { width: 52px; text-align: right; font-weight: 600; color: #111; flex-shrink: 0; }
-    .filter-range-display { text-align: center; font-size: 12px; color: #1D9E75; margin-top: 4px; font-weight: 600; }
+    .s-calibrating { background: #fff8e1; color: #f57f17; }
 
     .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 12px;
     }
     .stat-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
-      border: 1px solid #eee;
+      background: #fff; border-radius: 12px;
+      padding: 14px; text-align: center; border: 1px solid #eee;
     }
     .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
     .stat-value { font-size: 22px; font-weight: 600; color: #111; }
     .stat-sub { font-size: 12px; color: #1D9E75; margin-top: 3px; }
 
     .wave-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-      border: 1px solid #eee;
+      background: #fff; border-radius: 12px;
+      padding: 12px; margin-bottom: 12px; border: 1px solid #eee;
     }
-    canvas { width: 100%; height: 64px; display: block; }
+    canvas { width: 100%; height: 60px; display: block; }
     .canvas-label { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; margin-top: 4px; }
 
-    .btn-row { display: flex; gap: 10px; }
+    .btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
     .btn-start {
-      flex: 1;
-      padding: 15px;
-      border-radius: 12px;
-      border: none;
-      background: #1D9E75;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
+      flex: 1; padding: 15px; border-radius: 12px;
+      border: none; background: #1D9E75; color: #fff;
+      font-size: 16px; font-weight: 600; cursor: pointer;
     }
     .btn-start:active { background: #157a5b; }
     .btn-start.active { background: #e53935; }
     .btn-start.active:active { background: #b71c1c; }
     .btn-reset {
-      padding: 15px 18px;
-      border-radius: 12px;
-      border: 1px solid #e0e0e0;
-      background: #fff;
-      font-size: 14px;
-      color: #555;
-      cursor: pointer;
+      padding: 15px 18px; border-radius: 12px;
+      border: 1px solid #e0e0e0; background: #fff;
+      font-size: 14px; color: #555; cursor: pointer;
     }
     .btn-reset:active { background: #f5f5f5; }
+
+    .panel {
+      background: #fff; border-radius: 12px;
+      padding: 14px 16px; margin-bottom: 10px; border: 1px solid #eee;
+      font-size: 13px;
+    }
+    .panel-title { color: #888; margin-bottom: 10px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .slider-row label { color: #888; width: 34px; font-size: 12px; flex-shrink: 0; }
+    .slider-row input[type=range] { flex: 1; accent-color: #1D9E75; }
+    .slider-row span { width: 56px; text-align: right; font-weight: 600; color: #111; flex-shrink: 0; font-size: 12px; }
+    .filter-range-display { text-align: center; font-size: 12px; color: #1D9E75; margin-top: 4px; font-weight: 600; }
+
+    .calib-row { display: flex; align-items: center; gap: 8px; }
+    .calib-info { flex: 1; font-size: 12px; color: #888; }
+    .calib-info b { color: #111; }
+    .btn-calib {
+      padding: 7px 12px; border-radius: 8px;
+      border: 1px solid #e0e0e0; background: #f5f5f5;
+      font-size: 12px; font-weight: 600; color: #111;
+      cursor: pointer; white-space: nowrap;
+    }
+    .btn-calib:active { background: #e0e0e0; }
+
+    .signal-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .signal-label { font-size: 12px; color: #888; width: 50px; flex-shrink: 0; }
+    .signal-bar-wrap { flex: 1; height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
+    .signal-bar { height: 100%; border-radius: 3px; background: #1D9E75; transition: width 0.1s; }
+    .signal-val { font-size: 12px; font-weight: 600; color: #111; width: 32px; text-align: right; }
   </style>
 </head>
 <body>
@@ -134,21 +128,6 @@
     <div class="main-unit">Hz</div>
     <div class="sub-display" id="rpmVal">— <span class="sub-unit">RPM</span></div>
     <div><span class="status-badge s-idle" id="statusBadge">대기 중</span></div>
-  </div>
-
-  <div class="filter-bar">
-    <div class="filter-title">필터 범위</div>
-    <div class="filter-row">
-      <label>최소</label>
-      <input type="range" id="minHz" min="100" max="900" step="10" value="300" oninput="updateFilter()">
-      <span id="minHzVal">300 Hz</span>
-    </div>
-    <div class="filter-row">
-      <label>최대</label>
-      <input type="range" id="maxHz" min="100" max="900" step="10" value="700" oninput="updateFilter()">
-      <span id="maxHzVal">700 Hz</span>
-    </div>
-    <div class="filter-range-display" id="filterDisplay">감지 범위: 300 ~ 700 Hz</div>
   </div>
 
   <div class="stats-grid">
@@ -173,17 +152,82 @@
     <button class="btn-start" id="startBtn" onclick="toggleMic()">마이크 시작</button>
     <button class="btn-reset" onclick="resetStats()">초기화</button>
   </div>
+
+  <div class="panel">
+    <div class="panel-title">신호 강도</div>
+    <div class="signal-row">
+      <span class="signal-label">현재 신호</span>
+      <div class="signal-bar-wrap"><div class="signal-bar" id="sigBar" style="width:0%"></div></div>
+      <span class="signal-val" id="sigVal">0</span>
+    </div>
+    <div class="signal-row">
+      <span class="signal-label">노이즈 기준</span>
+      <div class="signal-bar-wrap"><div class="signal-bar" id="noiseBar" style="width:0%;background:#EF9F27"></div></div>
+      <span class="signal-val" id="noiseVal">—</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">노이즈 기준선 보정</div>
+    <div class="calib-row">
+      <div class="calib-info" id="calibInfo">보정 전 — 주변 소음 없을 때 버튼을 눌러주세요</div>
+      <button class="btn-calib" id="calibBtn" onclick="calibrateNoise()">보정 시작</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">필터 범위 (Hz)</div>
+    <div class="slider-row">
+      <label>최소</label>
+      <input type="range" id="minHz" min="100" max="900" step="10" value="300" oninput="updateFilter()">
+      <span id="minHzVal">300 Hz</span>
+    </div>
+    <div class="slider-row">
+      <label>최대</label>
+      <input type="range" id="maxHz" min="100" max="900" step="10" value="700" oninput="updateFilter()">
+      <span id="maxHzVal">700 Hz</span>
+    </div>
+    <div class="filter-range-display" id="filterDisplay">감지 범위: 300 ~ 700 Hz</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">감도 설정</div>
+    <div class="slider-row">
+      <label>감도</label>
+      <input type="range" id="sensitivity" min="5" max="80" step="1" value="20" oninput="updateSensitivity()">
+      <span id="sensitivityVal">20</span>
+    </div>
+    <div class="slider-row">
+      <label>안정성</label>
+      <input type="range" id="stability" min="1" max="8" step="1" value="3" oninput="updateStability()">
+      <span id="stabilityVal">3 프레임</span>
+    </div>
+    <div class="slider-row">
+      <label>변화폭</label>
+      <input type="range" id="jumpTol" min="5" max="50" step="5" value="20" oninput="updateJump()">
+      <span id="jumpVal">±20%</span>
+    </div>
+  </div>
 </div>
 
 <script>
 let audioCtx, analyser, source, animId;
 let isRunning = false;
-let maxRpmVal = 0, maxHzStatVal = 0, rpmHistory = [], hzHistory = [], lastRpm = 0, lastHz = 0;
+let maxRpmVal = 0, maxHzStatVal = 0;
+let rpmHistory = [], hzHistory = [];
+let lastHz = 0, lastRpm = 0;
 let filterMin = 300, filterMax = 700;
+let sensitivityThreshold = 20;
+let stabilityRequired = 3;
+let jumpTolerance = 0.20;
+let noiseFloor = null;
+let isCalibrating = false;
+let calibFrames = [], calibCount = 0;
+let consecutiveCount = 0, candidateHz = 0;
 
 const canvas = document.getElementById("waveform");
 const ctx2d = canvas.getContext("2d");
-canvas.width = canvas.offsetWidth; canvas.height = 64;
+canvas.width = canvas.offsetWidth; canvas.height = 60;
 
 function updateFilter() {
   filterMin = parseInt(document.getElementById("minHz").value);
@@ -193,24 +237,51 @@ function updateFilter() {
   document.getElementById("maxHzVal").textContent = filterMax + " Hz";
   document.getElementById("filterDisplay").textContent = `감지 범위: ${filterMin} ~ ${filterMax} Hz`;
 }
+function updateSensitivity() {
+  sensitivityThreshold = parseInt(document.getElementById("sensitivity").value);
+  document.getElementById("sensitivityVal").textContent = sensitivityThreshold;
+}
+function updateStability() {
+  stabilityRequired = parseInt(document.getElementById("stability").value);
+  document.getElementById("stabilityVal").textContent = stabilityRequired + " 프레임";
+}
+function updateJump() {
+  jumpTolerance = parseInt(document.getElementById("jumpTol").value) / 100;
+  document.getElementById("jumpVal").textContent = `±${Math.round(jumpTolerance * 100)}%`;
+}
 
-function dominantFreqInRange(analyser, sampleRate, minHz, maxHz) {
-  const buf = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(buf);
+function calibrateNoise() {
+  if (!isRunning) { alert("마이크를 먼저 시작해주세요."); return; }
+  isCalibrating = true;
+  calibFrames = []; calibCount = 0;
+  document.getElementById("calibBtn").textContent = "보정 중...";
+  document.getElementById("calibBtn").disabled = true;
+  document.getElementById("calibInfo").textContent = "3초간 주변 소음 측정 중...";
+  document.getElementById("statusBadge").textContent = "보정 중";
+  document.getElementById("statusBadge").className = "status-badge s-calibrating";
+}
+
+function getMaxInRange(buf, sampleRate, minHz, maxHz) {
   const minBin = Math.floor(minHz * analyser.fftSize / sampleRate);
   const maxBin = Math.ceil(maxHz * analyser.fftSize / sampleRate);
   let maxVal = 0, maxIdx = 0;
   for (let i = minBin; i <= maxBin && i < buf.length; i++) {
     if (buf[i] > maxVal) { maxVal = buf[i]; maxIdx = i; }
   }
-  if (maxVal < 20) return 0;
-  return maxIdx * sampleRate / analyser.fftSize;
+  return { val: maxVal, idx: maxIdx };
 }
 
-function drawSpectrum() {
-  const buf = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(buf);
-  const sampleRate = audioCtx.sampleRate;
+function checkHarmonics(buf, sampleRate, freq) {
+  let score = 0;
+  const fftSize = analyser.fftSize;
+  [1, 2, 3].forEach(h => {
+    const bin = Math.round(freq * h * fftSize / sampleRate);
+    if (bin < buf.length && buf[bin] > 15) score++;
+  });
+  return score >= 2;
+}
+
+function drawSpectrum(buf, sampleRate) {
   const w = canvas.width, h = canvas.height;
   ctx2d.clearRect(0, 0, w, h);
   const displayMax = 1200;
@@ -223,19 +294,76 @@ function drawSpectrum() {
     ctx2d.fillStyle = (i >= filterMinBin && i <= filterMaxBin) ? "#1D9E75" : "rgba(150,150,150,0.25)";
     ctx2d.fillRect(x, h - barH, 2, barH);
   }
+  if (lastHz > 0) {
+    const peakBin = Math.round(lastHz * analyser.fftSize / sampleRate);
+    const px = Math.round(peakBin / maxBinDisp * w);
+    ctx2d.strokeStyle = "#E24B4A";
+    ctx2d.lineWidth = 1.5;
+    ctx2d.beginPath(); ctx2d.moveTo(px, 0); ctx2d.lineTo(px, h); ctx2d.stroke();
+  }
 }
 
 function loop() {
   if (!isRunning) return;
-  drawSpectrum();
-  const freq = dominantFreqInRange(analyser, audioCtx.sampleRate, filterMin, filterMax);
-  if (freq > 0) {
-    lastHz = Math.round(freq * 10) / 10;
-    lastRpm = Math.round(freq * 60);
-    hzHistory.push(lastHz); rpmHistory.push(lastRpm);
-    if (hzHistory.length > 30) { hzHistory.shift(); rpmHistory.shift(); }
-    if (lastRpm > maxRpmVal) { maxRpmVal = lastRpm; maxHzStatVal = lastHz; }
+  const buf = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(buf);
+  const sampleRate = audioCtx.sampleRate;
+
+  drawSpectrum(buf, sampleRate);
+
+  const { val: peakVal, idx: peakIdx } = getMaxInRange(buf, sampleRate, filterMin, filterMax);
+  document.getElementById("sigBar").style.width = Math.min(100, Math.round(peakVal / 255 * 100)) + "%";
+  document.getElementById("sigVal").textContent = peakVal;
+
+  if (isCalibrating) {
+    calibFrames.push(peakVal);
+    calibCount++;
+    document.getElementById("calibInfo").textContent = `측정 중... ${Math.round(calibCount / 90 * 100)}%`;
+    if (calibCount >= 90) {
+      isCalibrating = false;
+      noiseFloor = Math.round(calibFrames.reduce((a,b)=>a+b,0) / calibFrames.length * 1.3);
+      noiseFloor = Math.max(noiseFloor, sensitivityThreshold);
+      document.getElementById("calibBtn").textContent = "재보정";
+      document.getElementById("calibBtn").disabled = false;
+      document.getElementById("calibInfo").innerHTML = `노이즈 기준: <b>${noiseFloor}</b> — 보정 완료`;
+      document.getElementById("noiseBar").style.width = Math.min(100, Math.round(noiseFloor / 255 * 100)) + "%";
+      document.getElementById("noiseVal").textContent = noiseFloor;
+      document.getElementById("statusBadge").textContent = "청취 중...";
+      document.getElementById("statusBadge").className = "status-badge s-listening";
+    }
+    animId = requestAnimationFrame(loop);
+    return;
+  }
+
+  const threshold = noiseFloor !== null ? noiseFloor : sensitivityThreshold;
+  let detected = false;
+
+  if (peakVal > threshold) {
+    const freq = peakIdx * sampleRate / analyser.fftSize;
+    const hasHarmonics = checkHarmonics(buf, sampleRate, freq);
+    const stableJump = lastHz === 0 || Math.abs(freq - candidateHz) / Math.max(candidateHz, 1) < jumpTolerance;
+
+    if (hasHarmonics && stableJump) {
+      if (Math.abs(freq - candidateHz) / Math.max(candidateHz, 1) < jumpTolerance) {
+        consecutiveCount++;
+      } else {
+        candidateHz = freq;
+        consecutiveCount = 1;
+      }
+      if (consecutiveCount >= stabilityRequired) {
+        const hz = Math.round(freq * 10) / 10;
+        const rpm = Math.round(freq * 60);
+        lastHz = hz; lastRpm = rpm;
+        hzHistory.push(hz); rpmHistory.push(rpm);
+        if (hzHistory.length > 30) { hzHistory.shift(); rpmHistory.shift(); }
+        if (rpm > maxRpmVal) { maxRpmVal = rpm; maxHzStatVal = hz; }
+        detected = true;
+      }
+    } else if (!hasHarmonics) {
+      consecutiveCount = 0;
+    }
   } else {
+    consecutiveCount = 0;
     lastHz = 0; lastRpm = 0;
   }
 
@@ -251,7 +379,7 @@ function loop() {
   }
 
   const badge = document.getElementById("statusBadge");
-  if (lastHz > 0) { badge.textContent = "감지됨"; badge.className = "status-badge s-detected"; }
+  if (detected) { badge.textContent = "감지됨"; badge.className = "status-badge s-detected"; }
   else { badge.textContent = "청취 중..."; badge.className = "status-badge s-listening"; }
 
   animId = requestAnimationFrame(loop);
@@ -285,6 +413,8 @@ async function toggleMic() {
     isRunning = true;
     document.getElementById("startBtn").textContent = "측정 중지";
     document.getElementById("startBtn").classList.add("active");
+    document.getElementById("statusBadge").textContent = "청취 중...";
+    document.getElementById("statusBadge").className = "status-badge s-listening";
     loop();
   } catch(e) {
     alert("마이크 접근 권한이 필요합니다.\n브라우저 설정에서 마이크를 허용해 주세요.");
@@ -292,7 +422,8 @@ async function toggleMic() {
 }
 
 function resetStats() {
-  maxRpmVal = 0; maxHzStatVal = 0; rpmHistory = []; hzHistory = []; lastRpm = 0; lastHz = 0;
+  maxRpmVal = 0; maxHzStatVal = 0; rpmHistory = []; hzHistory = [];
+  lastHz = 0; lastRpm = 0; consecutiveCount = 0; candidateHz = 0;
   document.getElementById("hzVal").textContent = "—";
   document.getElementById("rpmVal").innerHTML = `— <span class="sub-unit">RPM</span>`;
   document.getElementById("maxHzStat").textContent = "—";

@@ -1,118 +1,107 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0a0a0a" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Mini RPM" />
-  <title>Mini4WD RPM Checker</title>
-  <link rel="manifest" href="manifest.json" />
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; background: #0a0a0a; color: #fff; min-height: 100vh; }
-    header { background: #0a0a0a; border-bottom: 1px solid #1a1a1a; padding: 16px 20px; display: flex; align-items: baseline; justify-content: space-between; }
-    header h1 { font-size: 13px; font-weight: 500; color: #39ff14; letter-spacing: 2px; text-transform: uppercase; }
-    header span { font-size: 11px; color: #444; letter-spacing: 1px; }
-    .container { padding: 16px; max-width: 480px; margin: 0 auto; }
-
-    .rpm-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 28px 20px 20px; text-align: center; margin-bottom: 10px; }
-    .main-label { font-size: 11px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-    .main-number { font-size: 72px; font-weight: 700; color: #39ff14; line-height: 1; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
-    .main-unit { font-size: 13px; color: #444; margin-top: 4px; letter-spacing: 2px; }
-    .sub-display { font-size: 20px; font-weight: 500; color: #00e5ff; margin-top: 12px; letter-spacing: 1px; }
-    .sub-unit { font-size: 12px; color: #444; font-weight: 400; }
-    .status-badge { display: inline-block; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 14px; border-radius: 99px; margin-top: 14px; font-weight: 500; }
-    .s-idle { background: #1a1a1a; color: #444; border: 1px solid #222; }
-    .s-listening { background: #0a1a0a; color: #39ff14; border: 1px solid #39ff1440; }
-    .s-detected { background: #001a1a; color: #00e5ff; border: 1px solid #00e5ff40; }
-    .s-calibrating { background: #1a1200; color: #ffea00; border: 1px solid #ffea0040; }
-
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .stat-card { background: #111; border: 1px solid #222; border-radius: 10px; padding: 14px 12px; text-align: center; }
-    .stat-label { font-size: 10px; color: #444; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
-    .stat-value { font-size: 22px; font-weight: 700; color: #39ff14; font-variant-numeric: tabular-nums; }
-    .stat-sub { font-size: 11px; color: #00e5ff; margin-top: 3px; }
-
-    .wave-card { background: #111; border: 1px solid #222; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
-    canvas { width: 100%; height: 60px; display: block; }
-    .canvas-label { display: flex; justify-content: space-between; font-size: 10px; color: #333; margin-top: 4px; }
-
-    .btn-row { display: flex; gap: 8px; margin-bottom: 10px; }
-    .btn-start { flex: 1; padding: 14px; border-radius: 10px; border: none; background: #39ff14; color: #0a0a0a; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 1.5px; text-transform: uppercase; }
-    .btn-start:active { opacity: 0.85; }
-    .btn-start.active { background: #ff2d55; color: #fff; }
-    .btn-reset { padding: 14px 16px; border-radius: 10px; border: 1px solid #222; background: #111; font-size: 12px; color: #444; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
-    .btn-reset:active { background: #1a1a1a; }
-
-    .panel { background: #111; border: 1px solid #222; border-radius: 10px; padding: 14px; margin-bottom: 8px; }
-    .panel-title { font-size: 10px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
-
-    .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .slider-row label { font-size: 11px; color: #555; width: 34px; flex-shrink: 0; }
-    .slider-row input[type=range] { flex: 1; -webkit-appearance: none; height: 3px; background: #222; border-radius: 2px; outline: none; }
-    .slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #39ff14; cursor: pointer; }
-    .slider-row span { width: 54px; text-align: right; font-size: 12px; font-weight: 500; color: #00e5ff; flex-shrink: 0; }
-    .filter-range-display { text-align: center; font-size: 11px; color: #00e5ff; margin-top: 6px; letter-spacing: 1px; }
-
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-    .toggle-label { font-size: 11px; color: #555; }
-    .toggle-wrap { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
-    .toggle-wrap input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #222; border-radius: 22px; transition: 0.2s; }
-    .toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background: #555; border-radius: 50%; transition: 0.2s; }
-    input:checked + .toggle-slider { background: #39ff1440; border: 1px solid #39ff1480; }
-    input:checked + .toggle-slider:before { transform: translateX(18px); background: #39ff14; }
-    .mode-desc { font-size: 11px; color: #444; margin-bottom: 10px; }
-
-    .calib-row { display: flex; align-items: center; gap: 8px; }
-    .calib-info { flex: 1; font-size: 11px; color: #555; line-height: 1.5; }
-    .calib-info b { color: #39ff14; }
-    .btn-calib { padding: 8px 12px; border-radius: 8px; border: 1px solid #39ff1440; background: #0a1a0a; font-size: 11px; font-weight: 600; color: #39ff14; cursor: pointer; white-space: nowrap; }
-    .btn-calib:active { background: #0f2a0f; }
-    .btn-calib:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .signal-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-    .signal-label { font-size: 11px; color: #555; width: 50px; flex-shrink: 0; }
-    .signal-bar-wrap { flex: 1; height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden; }
-    .signal-bar-green { height: 100%; border-radius: 2px; background: #39ff14; transition: width 0.08s; }
-    .signal-bar-amber { height: 100%; border-radius: 2px; background: #ffea00; transition: width 0.08s; }
-    .signal-val { font-size: 11px; font-weight: 500; color: #555; width: 28px; text-align: right; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Mini RPM" />
+<title>Mini4WD RPM v5</title>
+<link rel="manifest" href="manifest.json" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; }
+.app { padding: 16px; max-width: 480px; margin: 0 auto; }
+.header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+.header-title { font-size: 13px; font-weight: 500; color: #39ff14; letter-spacing: 2px; text-transform: uppercase; }
+.header-sub { font-size: 11px; color: #444; letter-spacing: 1px; }
+.rpm-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 24px 20px 18px; text-align: center; margin-bottom: 10px; }
+.main-label { font-size: 11px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+.main-number { font-size: 72px; font-weight: 700; color: #39ff14; line-height: 1; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+.main-unit { font-size: 13px; color: #444; margin-top: 4px; letter-spacing: 2px; }
+.sub-display { font-size: 22px; font-weight: 500; color: #00e5ff; margin-top: 12px; letter-spacing: 1px; }
+.sub-unit { font-size: 12px; color: #444; font-weight: 400; }
+.conf-row { margin-top: 12px; display: flex; align-items: center; gap: 8px; justify-content: center; }
+.conf-label { font-size: 10px; color: #444; letter-spacing: 1px; }
+.conf-bar-wrap { width: 100px; height: 5px; background: #1a1a1a; border-radius: 3px; overflow: hidden; }
+.conf-bar { height: 100%; background: #39ff14; width: 0%; transition: width 0.1s; }
+.status-badge { display: inline-block; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 99px; margin-top: 14px; font-weight: 500; }
+.s-idle { background: #1a1a1a; color: #444; border: 1px solid #222; }
+.s-listening { background: #0a1a0a; color: #39ff14; border: 1px solid #39ff1440; }
+.s-detected { background: #001a1a; color: #00e5ff; border: 1px solid #00e5ff40; }
+.s-calibrating { background: #1a1200; color: #ffea00; border: 1px solid #ffea0040; }
+.stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin-bottom: 10px; }
+.stat-card { background: #111; border: 1px solid #222; border-radius: 10px; padding: 14px 12px; text-align: center; }
+.stat-label { font-size: 10px; color: #444; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+.stat-value { font-size: 24px; font-weight: 700; color: #39ff14; font-variant-numeric: tabular-nums; }
+.stat-sub { font-size: 11px; color: #00e5ff; margin-top: 3px; }
+.canvas-wrap { background: #111; border: 1px solid #222; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+canvas { width: 100%; height: 70px; display: block; }
+.canvas-label { display: flex; justify-content: space-between; font-size: 10px; color: #333; margin-top: 4px; }
+.btn-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.btn-start { flex: 1; padding: 16px; border-radius: 10px; border: none; background: #39ff14; color: #0a0a0a; font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 1.5px; text-transform: uppercase; }
+.btn-start.active { background: #ff2d55; color: #fff; }
+.btn-start:active { opacity: 0.85; transform: scale(0.98); }
+.btn-reset { padding: 16px 18px; border-radius: 10px; border: 1px solid #222; background: #111; font-size: 12px; color: #444; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
+.btn-reset:active { background: #1a1a1a; }
+.panel { background: #111; border: 1px solid #222; border-radius: 10px; padding: 14px; margin-bottom: 8px; }
+.panel-title { font-size: 10px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; }
+.toggle-row label { font-size: 13px; color: #888; }
+.tog { width: 46px; height: 24px; border-radius: 99px; background: #222; position: relative; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
+.tog.on { background: #39ff14; }
+.tog::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #0a0a0a; transition: left 0.15s; }
+.tog.on::after { left: 24px; }
+.tog-hint { font-size: 11px; color: #444; margin-top: 6px; line-height: 1.5; }
+.slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.slider-row label { font-size: 11px; color: #555; width: 46px; flex-shrink: 0; }
+.slider-row input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; background: #222; border-radius: 2px; outline: none; }
+.slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #39ff14; cursor: pointer; }
+.slider-row span { width: 56px; text-align: right; font-size: 12px; font-weight: 500; color: #39ff14; flex-shrink: 0; }
+.calib-row { display: flex; align-items: center; gap: 8px; }
+.calib-info { flex: 1; font-size: 12px; color: #555; line-height: 1.5; }
+.calib-info b { color: #39ff14; }
+.btn-calib { padding: 10px 14px; border-radius: 8px; border: 1px solid #39ff1440; background: #0a1a0a; font-size: 12px; font-weight: 600; color: #39ff14; cursor: pointer; white-space: nowrap; }
+.btn-calib:active { background: #0f2a0f; }
+.btn-calib:disabled { opacity: 0.4; }
+</style>
 </head>
 <body>
-<header>
-  <h1>Mini4WD RPM</h1>
-  <span>mic analyzer</span>
-</header>
+<div class="app">
+  <div class="header">
+    <span class="header-title">Mini4WD RPM</span>
+    <span class="header-sub">v5 · precision</span>
+  </div>
 
-<div class="container">
   <div class="rpm-card">
-    <div class="main-label">주파수</div>
+    <div class="main-label">주파수 (f0)</div>
     <div class="main-number" id="hzVal">—</div>
     <div class="main-unit">Hz</div>
     <div class="sub-display" id="rpmVal">— <span class="sub-unit">RPM</span></div>
+    <div class="conf-row">
+      <span class="conf-label">신뢰도</span>
+      <div class="conf-bar-wrap"><div class="conf-bar" id="confBar"></div></div>
+    </div>
     <div><span class="status-badge s-idle" id="statusBadge">대기 중</span></div>
   </div>
 
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">최대 Hz</div>
+      <div class="stat-label">최대 (안정)</div>
       <div class="stat-value" id="maxHzStat">—</div>
       <div class="stat-sub" id="maxRpm">— RPM</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">평균 Hz</div>
-      <div class="stat-value" id="avgHzStat">—</div>
-      <div class="stat-sub" id="avgRpm">— RPM</div>
+      <div class="stat-label">중앙값</div>
+      <div class="stat-value" id="medHzStat">—</div>
+      <div class="stat-sub" id="medRpm">— RPM</div>
     </div>
   </div>
 
-  <div class="wave-card">
+  <div class="canvas-wrap">
     <canvas id="waveform"></canvas>
-    <div class="canvas-label"><span>0 Hz</span><span>600 Hz</span><span>1200 Hz</span></div>
+    <div class="canvas-label"><span>0</span><span>600</span><span>1200 Hz</span></div>
   </div>
 
   <div class="btn-row">
@@ -121,283 +110,226 @@
   </div>
 
   <div class="panel">
-    <div class="panel-title">신호 강도</div>
-    <div class="signal-row">
-      <span class="signal-label">현재</span>
-      <div class="signal-bar-wrap"><div class="signal-bar-green" id="sigBar" style="width:0%"></div></div>
-      <span class="signal-val" id="sigVal">0</span>
+    <div class="panel-title">정확도 옵션</div>
+    <div class="toggle-row">
+      <label>기본 주파수 자동판별 (HPS)</label>
+      <div class="tog on" id="hpsTog" onclick="toggleHps()"></div>
     </div>
-    <div class="signal-row">
-      <span class="signal-label">노이즈</span>
-      <div class="signal-bar-wrap"><div class="signal-bar-amber" id="noiseBar" style="width:0%"></div></div>
-      <span class="signal-val" id="noiseVal">—</span>
+    <div class="tog-hint">2·3배음을 눌러 진짜 f0를 찾음. 배음이 더 셀 때 RPM 2배 튐 방지.</div>
+    <div class="toggle-row" style="margin-top:14px">
+      <label>노이즈 환경 모드</label>
+      <div class="tog" id="noisyTog" onclick="toggleNoisy()"></div>
     </div>
+    <div class="tog-hint">대회장처럼 시끄러운 곳: 하모닉 검증 완화, 문턱 낮춤.</div>
   </div>
 
   <div class="panel">
     <div class="panel-title">노이즈 보정</div>
     <div class="calib-row">
-      <div class="calib-info" id="calibInfo">조용한 환경에서 보정 후 측정하세요</div>
-      <button class="btn-calib" id="calibBtn" onclick="calibrateNoise()">보정 시작</button>
+      <div class="calib-info" id="calibInfo">조용할 때 보정 후 측정하세요</div>
+      <button class="btn-calib" id="calibBtn" onclick="calibrateNoise()">보정</button>
     </div>
   </div>
 
   <div class="panel">
-    <div class="panel-title">필터 범위 (Hz)</div>
+    <div class="panel-title">필터 · 감도</div>
     <div class="slider-row">
-      <label>최소</label>
+      <label>최소Hz</label>
       <input type="range" id="minHz" min="100" max="900" step="10" value="300" oninput="updateFilter()">
-      <span id="minHzVal">300 Hz</span>
+      <span id="minHzVal">300</span>
     </div>
     <div class="slider-row">
-      <label>최대</label>
+      <label>최대Hz</label>
       <input type="range" id="maxHz" min="100" max="900" step="10" value="700" oninput="updateFilter()">
-      <span id="maxHzVal">700 Hz</span>
+      <span id="maxHzVal">700</span>
     </div>
-    <div class="filter-range-display" id="filterDisplay">감지 범위: 300 ~ 700 Hz</div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">감도 설정</div>
-    <div class="toggle-row">
-      <span class="toggle-label">노이즈 환경 모드 (대회장 등)</span>
-      <label class="toggle-wrap">
-        <input type="checkbox" id="noisyMode" onchange="updateNoisyMode()">
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-    <div class="mode-desc" id="modeDesc">하모닉 검증 ON — 정확도 우선</div>
     <div class="slider-row">
       <label>감도</label>
-      <input type="range" id="sensitivity" min="5" max="80" step="1" value="20" oninput="updateSensitivity()">
-      <span id="sensitivityVal">20</span>
+      <input type="range" id="sensitivity" min="5" max="80" step="1" value="20" oninput="updateSens()">
+      <span id="sensVal">20</span>
     </div>
     <div class="slider-row">
-      <label>안정성</label>
-      <input type="range" id="stability" min="1" max="8" step="1" value="3" oninput="updateStability()">
-      <span id="stabilityVal">3f</span>
-    </div>
-    <div class="slider-row">
-      <label>변화폭</label>
-      <input type="range" id="jumpTol" min="5" max="50" step="5" value="20" oninput="updateJump()">
-      <span id="jumpVal">±20%</span>
+      <label>안정프레임</label>
+      <input type="range" id="stability" min="1" max="8" step="1" value="3" oninput="updateStab()">
+      <span id="stabVal">3f</span>
     </div>
   </div>
 </div>
 
 <script>
-let audioCtx, analyser, source, animId;
-let isRunning = false;
+let audioCtx, analyser, source, animId, isRunning = false;
 let maxRpmVal = 0, maxHzStatVal = 0;
-let rpmHistory = [], hzHistory = [];
-let lastHz = 0, lastRpm = 0;
+let hzHistory = [];
+let lastHz = 0, lastRpm = 0, confidence = 0;
 let filterMin = 300, filterMax = 700;
-let sensitivityThreshold = 20, stabilityRequired = 3, jumpTolerance = 0.20;
-let noiseFloor = null, isCalibrating = false;
-let calibFrames = [], calibCount = 0;
+let sensThreshold = 20, stabRequired = 3;
+let noiseFloor = null, isCalibrating = false, calibFrames = [], calibCount = 0;
 let consecutiveCount = 0, candidateHz = 0;
-let noisyMode = false;
+let useHps = true, noisyMode = false;
 
-const canvas = document.getElementById("waveform");
-const ctx2d = canvas.getContext("2d");
-canvas.width = canvas.offsetWidth; canvas.height = 60;
+const $ = id => document.getElementById(id);
+const canvas = $("waveform"), ctx2d = canvas.getContext("2d");
+function sizeCanvas(){ canvas.width = canvas.offsetWidth; canvas.height = 70; }
+sizeCanvas(); window.addEventListener("resize", sizeCanvas);
 
-function updateFilter() {
-  filterMin = parseInt(document.getElementById("minHz").value);
-  filterMax = parseInt(document.getElementById("maxHz").value);
-  if (filterMin >= filterMax) { filterMax = filterMin + 10; document.getElementById("maxHz").value = filterMax; }
-  document.getElementById("minHzVal").textContent = filterMin + " Hz";
-  document.getElementById("maxHzVal").textContent = filterMax + " Hz";
-  document.getElementById("filterDisplay").textContent = `감지 범위: ${filterMin} ~ ${filterMax} Hz`;
+function updateFilter(){ filterMin=+$("minHz").value; filterMax=+$("maxHz").value; if(filterMin>=filterMax){filterMax=filterMin+10; $("maxHz").value=filterMax;} $("minHzVal").textContent=filterMin; $("maxHzVal").textContent=filterMax; }
+function updateSens(){ sensThreshold=+$("sensitivity").value; $("sensVal").textContent=sensThreshold; }
+function updateStab(){ stabRequired=+$("stability").value; $("stabVal").textContent=stabRequired+"f"; }
+function toggleHps(){ useHps=!useHps; $("hpsTog").classList.toggle("on",useHps); }
+function toggleNoisy(){ noisyMode=!noisyMode; $("noisyTog").classList.toggle("on",noisyMode); }
+
+function calibrateNoise(){
+  if(!isRunning){ alert("마이크를 먼저 시작하세요."); return; }
+  isCalibrating=true; calibFrames=[]; calibCount=0;
+  $("calibBtn").textContent="측정중"; $("calibBtn").disabled=true;
+  $("calibInfo").textContent="3초간 주변 소음 측정...";
+  $("statusBadge").textContent="보정 중"; $("statusBadge").className="status-badge s-calibrating";
 }
-function updateSensitivity() {
-  sensitivityThreshold = parseInt(document.getElementById("sensitivity").value);
-  document.getElementById("sensitivityVal").textContent = sensitivityThreshold;
+
+function parabolic(buf, idx){
+  if(idx<=0 || idx>=buf.length-1) return {bin: idx, mag: buf[idx]};
+  const a=buf[idx-1], b=buf[idx], c=buf[idx+1], denom=(a-2*b+c);
+  if(denom===0) return {bin: idx, mag: b};
+  const p=0.5*(a-c)/denom;
+  return {bin: idx+p, mag: b-0.25*(a-c)*p};
 }
-function updateStability() {
-  stabilityRequired = parseInt(document.getElementById("stability").value);
-  document.getElementById("stabilityVal").textContent = stabilityRequired + "f";
+
+function findF0_HPS(buf, sr){
+  const minBin=Math.floor(filterMin*analyser.fftSize/sr), maxBin=Math.ceil(filterMax*analyser.fftSize/sr);
+  let bestBin=minBin, bestScore=-1;
+  for(let i=minBin;i<=maxBin && i<buf.length;i++){
+    let score=buf[i];
+    for(let h=2;h<=4;h++){ const hb=i*h; if(hb<buf.length) score+=buf[hb]*0.9; }
+    if(score>bestScore){ bestScore=score; bestBin=i; }
+  }
+  return bestBin;
 }
-function updateJump() {
-  jumpTolerance = parseInt(document.getElementById("jumpTol").value) / 100;
-  document.getElementById("jumpVal").textContent = `±${Math.round(jumpTolerance*100)}%`;
+
+function findPeakMax(buf, sr){
+  const minBin=Math.floor(filterMin*analyser.fftSize/sr), maxBin=Math.ceil(filterMax*analyser.fftSize/sr);
+  let mx=0, mi=minBin;
+  for(let i=minBin;i<=maxBin && i<buf.length;i++){ if(buf[i]>mx){mx=buf[i]; mi=i;} }
+  return mi;
 }
-function updateNoisyMode() {
-  noisyMode = document.getElementById("noisyMode").checked;
-  const desc = document.getElementById("modeDesc");
-  if (noisyMode) {
-    desc.textContent = "하모닉 검증 OFF — 시끄러운 환경에서 사용";
-    desc.style.color = "#ffea00";
-  } else {
-    desc.textContent = "하모닉 검증 ON — 정확도 우선";
-    desc.style.color = "#444";
+
+function harmonicScore(buf, sr, freq){
+  let s=0;
+  for(let h=1;h<=3;h++){ const bin=Math.round(freq*h*analyser.fftSize/sr); if(bin<buf.length && buf[bin]>12) s++; }
+  return s;
+}
+
+function median(arr){ if(!arr.length) return 0; const s=[...arr].sort((a,b)=>a-b), m=Math.floor(s.length/2); return s.length%2? s[m] : (s[m-1]+s[m])/2; }
+
+function drawSpectrum(buf, sr){
+  const w=canvas.width, h=canvas.height; ctx2d.clearRect(0,0,w,h);
+  const dispMax=1200, maxBinDisp=Math.ceil(dispMax*analyser.fftSize/sr);
+  const fMinB=Math.floor(filterMin*analyser.fftSize/sr), fMaxB=Math.ceil(filterMax*analyser.fftSize/sr);
+  for(let i=0;i<=maxBinDisp && i<buf.length;i++){
+    const x=Math.round(i/maxBinDisp*w), barH=Math.round(buf[i]/255*h);
+    ctx2d.fillStyle=(i>=fMinB && i<=fMaxB)?"#39ff14":"#1a1a1a";
+    ctx2d.fillRect(x,h-barH,2,barH);
+  }
+  if(lastHz>0){
+    const px=Math.round(lastHz*analyser.fftSize/sr/maxBinDisp*w);
+    ctx2d.strokeStyle="#00e5ff"; ctx2d.lineWidth=1.5;
+    ctx2d.beginPath(); ctx2d.moveTo(px,0); ctx2d.lineTo(px,h); ctx2d.stroke();
   }
 }
 
-function calibrateNoise() {
-  if (!isRunning) { alert("마이크를 먼저 시작해주세요."); return; }
-  isCalibrating = true; calibFrames = []; calibCount = 0;
-  document.getElementById("calibBtn").textContent = "측정 중...";
-  document.getElementById("calibBtn").disabled = true;
-  document.getElementById("calibInfo").textContent = "3초간 주변 소음 측정 중...";
-  document.getElementById("statusBadge").textContent = "보정 중";
-  document.getElementById("statusBadge").className = "status-badge s-calibrating";
-}
-
-function getMaxInRange(buf, sampleRate) {
-  const minBin = Math.floor(filterMin * analyser.fftSize / sampleRate);
-  const maxBin = Math.ceil(filterMax * analyser.fftSize / sampleRate);
-  let maxVal = 0, maxIdx = 0;
-  for (let i = minBin; i <= maxBin && i < buf.length; i++) {
-    if (buf[i] > maxVal) { maxVal = buf[i]; maxIdx = i; }
-  }
-  return { val: maxVal, idx: maxIdx };
-}
-
-function checkHarmonics(buf, sampleRate, freq) {
-  let score = 0;
-  [1,2,3].forEach(h => {
-    const bin = Math.round(freq * h * analyser.fftSize / sampleRate);
-    if (bin < buf.length && buf[bin] > 15) score++;
-  });
-  return score >= 2;
-}
-
-function drawSpectrum(buf, sampleRate) {
-  const w = canvas.width, h = canvas.height;
-  ctx2d.clearRect(0, 0, w, h);
-  const displayMax = 1200;
-  const maxBinDisp = Math.ceil(displayMax * analyser.fftSize / sampleRate);
-  const filterMinBin = Math.floor(filterMin * analyser.fftSize / sampleRate);
-  const filterMaxBin = Math.ceil(filterMax * analyser.fftSize / sampleRate);
-  for (let i = 0; i <= maxBinDisp && i < buf.length; i++) {
-    const x = Math.round(i / maxBinDisp * w);
-    const barH = Math.round(buf[i] / 255 * h);
-    ctx2d.fillStyle = (i >= filterMinBin && i <= filterMaxBin) ? "#39ff14" : "#1a1a1a";
-    ctx2d.fillRect(x, h - barH, 2, barH);
-  }
-  if (lastHz > 0) {
-    const peakBin = Math.round(lastHz * analyser.fftSize / sampleRate);
-    const px = Math.round(peakBin / maxBinDisp * w);
-    ctx2d.strokeStyle = "#00e5ff";
-    ctx2d.lineWidth = 1.5;
-    ctx2d.beginPath(); ctx2d.moveTo(px, 0); ctx2d.lineTo(px, h); ctx2d.stroke();
-  }
-}
-
-function loop() {
-  if (!isRunning) return;
-  const buf = new Uint8Array(analyser.frequencyBinCount);
+function loop(){
+  if(!isRunning) return;
+  const buf=new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(buf);
-  const sampleRate = audioCtx.sampleRate;
-  drawSpectrum(buf, sampleRate);
+  const sr=audioCtx.sampleRate;
+  drawSpectrum(buf, sr);
+  const peakBin=findPeakMax(buf, sr), peakVal=buf[peakBin];
 
-  const { val: peakVal, idx: peakIdx } = getMaxInRange(buf, sampleRate);
-  document.getElementById("sigBar").style.width = Math.min(100, Math.round(peakVal / 255 * 100)) + "%";
-  document.getElementById("sigVal").textContent = peakVal;
-
-  if (isCalibrating) {
+  if(isCalibrating){
     calibFrames.push(peakVal); calibCount++;
-    document.getElementById("calibInfo").textContent = `측정 중... ${Math.round(calibCount/90*100)}%`;
-    if (calibCount >= 90) {
-      isCalibrating = false;
-      noiseFloor = Math.round(calibFrames.reduce((a,b)=>a+b,0)/calibFrames.length * 1.3);
-      noiseFloor = Math.max(noiseFloor, sensitivityThreshold);
-      document.getElementById("calibBtn").textContent = "재보정";
-      document.getElementById("calibBtn").disabled = false;
-      document.getElementById("calibInfo").innerHTML = `기준: <b>${noiseFloor}</b> — 완료`;
-      document.getElementById("noiseBar").style.width = Math.min(100, Math.round(noiseFloor/255*100)) + "%";
-      document.getElementById("noiseVal").textContent = noiseFloor;
-      document.getElementById("statusBadge").textContent = "청취 중...";
-      document.getElementById("statusBadge").className = "status-badge s-listening";
+    $("calibInfo").textContent=`측정중... ${Math.round(calibCount/90*100)}%`;
+    if(calibCount>=90){
+      isCalibrating=false;
+      noiseFloor=Math.max(Math.round(calibFrames.reduce((a,b)=>a+b,0)/calibFrames.length*1.3), sensThreshold);
+      $("calibBtn").textContent="재보정"; $("calibBtn").disabled=false;
+      $("calibInfo").innerHTML=`기준: <b>${noiseFloor}</b> 완료`;
+      $("statusBadge").textContent="청취중"; $("statusBadge").className="status-badge s-listening";
     }
-    animId = requestAnimationFrame(loop); return;
+    animId=requestAnimationFrame(loop); return;
   }
 
-  const threshold = noiseFloor !== null ? noiseFloor : sensitivityThreshold;
-  let detected = false;
+  const threshold=noiseFloor!==null?noiseFloor:sensThreshold;
+  const effThreshold=noisyMode?threshold*0.8:threshold;
+  let detected=false;
 
-  if (peakVal > threshold) {
-    const freq = peakIdx * sampleRate / analyser.fftSize;
-    const passHarmonic = noisyMode ? true : checkHarmonics(buf, sampleRate, freq);
-    const withinJump = Math.abs(freq - candidateHz) / Math.max(candidateHz, 1) < jumpTolerance;
-    if (passHarmonic) {
-      if (candidateHz === 0 || withinJump) { consecutiveCount++; }
-      else { candidateHz = freq; consecutiveCount = 1; }
-      candidateHz = freq;
-      if (consecutiveCount >= stabilityRequired) {
-        const hz = Math.round(freq * 10) / 10;
-        const rpm = Math.round(freq * 60);
-        lastHz = hz; lastRpm = rpm;
-        hzHistory.push(hz); rpmHistory.push(rpm);
-        if (hzHistory.length > 30) { hzHistory.shift(); rpmHistory.shift(); }
-        if (rpm > maxRpmVal) { maxRpmVal = rpm; maxHzStatVal = hz; }
-        detected = true;
+  if(peakVal>effThreshold){
+    const rawBin=useHps?findF0_HPS(buf, sr):peakBin;
+    const refined=parabolic(buf, rawBin);
+    const freq=refined.bin*sr/analyser.fftSize;
+    const hScore=harmonicScore(buf, sr, freq);
+    const harmonicOK=noisyMode?(hScore>=1):(hScore>=2);
+    const jumpOK=candidateHz===0 || Math.abs(freq-candidateHz)/Math.max(candidateHz,1)<0.20;
+
+    if(harmonicOK){
+      if(jumpOK && candidateHz>0){ consecutiveCount++; }
+      else { candidateHz=freq; consecutiveCount=1; }
+      const needed=noisyMode?Math.max(1,stabRequired-1):stabRequired;
+      if(consecutiveCount>=needed){
+        const hz=Math.round(freq*10)/10, rpm=Math.round(freq*60);
+        lastHz=hz; lastRpm=rpm;
+        hzHistory.push(hz); if(hzHistory.length>40) hzHistory.shift();
+        confidence=Math.min(100, Math.round((peakVal/255*50)+(hScore/3*30)+(Math.min(consecutiveCount,5)/5*20)));
+        const med=median(hzHistory);
+        if(rpm>maxRpmVal && Math.abs(hz-med)/Math.max(med,1)<0.15){ maxRpmVal=rpm; maxHzStatVal=hz; }
+        detected=true;
       }
-    } else { consecutiveCount = 0; }
-  } else { consecutiveCount = 0; lastHz = 0; lastRpm = 0; }
+    } else { consecutiveCount=Math.max(0,consecutiveCount-1); }
+  } else { consecutiveCount=0; lastHz=0; lastRpm=0; confidence=0; }
 
-  document.getElementById("hzVal").textContent = lastHz > 0 ? lastHz.toFixed(1) : "—";
-  document.getElementById("rpmVal").innerHTML = lastRpm > 0 ? `${lastRpm.toLocaleString()} <span class="sub-unit">RPM</span>` : `— <span class="sub-unit">RPM</span>`;
-  document.getElementById("maxHzStat").textContent = maxHzStatVal > 0 ? maxHzStatVal.toFixed(1) : "—";
-  document.getElementById("maxRpm").textContent = maxRpmVal > 0 ? `${maxRpmVal.toLocaleString()} RPM` : "— RPM";
-  if (hzHistory.length > 0) {
-    document.getElementById("avgHzStat").textContent = (hzHistory.reduce((a,b)=>a+b,0)/hzHistory.length).toFixed(1);
-    document.getElementById("avgRpm").textContent = Math.round(rpmHistory.reduce((a,b)=>a+b,0)/rpmHistory.length).toLocaleString() + " RPM";
+  $("hzVal").textContent=lastHz>0?lastHz.toFixed(1):"—";
+  $("rpmVal").innerHTML=lastRpm>0?`${lastRpm.toLocaleString()} <span class="sub-unit">RPM</span>`:`— <span class="sub-unit">RPM</span>`;
+  $("confBar").style.width=confidence+"%";
+  $("confBar").style.background=confidence>66?"#39ff14":confidence>33?"#ffea00":"#ff2d55";
+  $("maxHzStat").textContent=maxHzStatVal>0?maxHzStatVal.toFixed(1):"—";
+  $("maxRpm").textContent=maxRpmVal>0?`${maxRpmVal.toLocaleString()} RPM`:"— RPM";
+  if(hzHistory.length>0){
+    const med=median(hzHistory);
+    $("medHzStat").textContent=med.toFixed(1);
+    $("medRpm").textContent=Math.round(med*60).toLocaleString()+" RPM";
   }
 
-  const badge = document.getElementById("statusBadge");
-  if (detected) { badge.textContent = "감지됨"; badge.className = "status-badge s-detected"; }
-  else { badge.textContent = "청취 중..."; badge.className = "status-badge s-listening"; }
-  animId = requestAnimationFrame(loop);
+  if(detected){ $("statusBadge").textContent="감지됨"; $("statusBadge").className="status-badge s-detected"; }
+  else { $("statusBadge").textContent="청취중"; $("statusBadge").className="status-badge s-listening"; }
+  animId=requestAnimationFrame(loop);
 }
 
-async function toggleMic() {
-  if (isRunning) {
-    isRunning = false; cancelAnimationFrame(animId);
-    if (source) source.disconnect();
-    if (audioCtx) audioCtx.close();
-    document.getElementById("startBtn").textContent = "시작";
-    document.getElementById("startBtn").classList.remove("active");
-    document.getElementById("statusBadge").textContent = "대기 중";
-    document.getElementById("statusBadge").className = "status-badge s-idle";
-    ctx2d.clearRect(0, 0, canvas.width, canvas.height);
-    return;
+async function toggleMic(){
+  if(isRunning){
+    isRunning=false; cancelAnimationFrame(animId);
+    if(source) source.disconnect(); if(audioCtx) audioCtx.close();
+    $("startBtn").textContent="시작"; $("startBtn").classList.remove("active");
+    $("statusBadge").textContent="대기 중"; $("statusBadge").className="status-badge s-idle";
+    ctx2d.clearRect(0,0,canvas.width,canvas.height); return;
   }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    audioCtx = new AudioContext(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 8192;
-    const biquad = audioCtx.createBiquadFilter();
-    biquad.type = "bandpass";
-    biquad.frequency.value = (filterMin + filterMax) / 2;
-    biquad.Q.value = biquad.frequency.value / (filterMax - filterMin);
-    source = audioCtx.createMediaStreamSource(stream);
-    source.connect(biquad); biquad.connect(analyser);
-    isRunning = true;
-    document.getElementById("startBtn").textContent = "정지";
-    document.getElementById("startBtn").classList.add("active");
-    document.getElementById("statusBadge").textContent = "청취 중...";
-    document.getElementById("statusBadge").className = "status-badge s-listening";
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended") await audioCtx.resume();
+    analyser=audioCtx.createAnalyser(); analyser.fftSize=16384; analyser.smoothingTimeConstant=0.3;
+    source=audioCtx.createMediaStreamSource(stream); source.connect(analyser);
+    isRunning=true;
+    $("startBtn").textContent="정지"; $("startBtn").classList.add("active");
+    $("statusBadge").textContent="청취중"; $("statusBadge").className="status-badge s-listening";
     loop();
-  } catch(e) { alert("마이크 접근 권한이 필요합니다."); }
+  }catch(e){ alert("마이크 권한이 필요합니다.\n브라우저 설정에서 마이크를 허용해주세요."); }
 }
 
-function resetStats() {
-  maxRpmVal = 0; maxHzStatVal = 0; rpmHistory = []; hzHistory = [];
-  lastHz = 0; lastRpm = 0; consecutiveCount = 0; candidateHz = 0;
-  document.getElementById("hzVal").textContent = "—";
-  document.getElementById("rpmVal").innerHTML = `— <span class="sub-unit">RPM</span>`;
-  document.getElementById("maxHzStat").textContent = "—";
-  document.getElementById("maxRpm").textContent = "— RPM";
-  document.getElementById("avgHzStat").textContent = "—";
-  document.getElementById("avgRpm").textContent = "— RPM";
+function resetStats(){
+  maxRpmVal=0; maxHzStatVal=0; hzHistory=[]; lastHz=0; lastRpm=0; confidence=0; consecutiveCount=0; candidateHz=0;
+  $("hzVal").textContent="—"; $("rpmVal").innerHTML=`— <span class="sub-unit">RPM</span>`;
+  $("maxHzStat").textContent="—"; $("maxRpm").textContent="— RPM"; $("medHzStat").textContent="—"; $("medRpm").textContent="— RPM"; $("confBar").style.width="0%";
 }
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
-}
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
 </script>
 </body>
 </html>

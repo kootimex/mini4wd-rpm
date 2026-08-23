@@ -1,12 +1,7 @@
-const CACHE = 'mini4wd-rpm-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
-
+const CACHE = 'mini4wd-rpm-v5';
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./index.html', './manifest.json'])));
 });
-
 self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
-  );
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });

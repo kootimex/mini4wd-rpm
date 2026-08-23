@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Mini RPM" />
-<title>Mini4WD RPM v5</title>
+<title>Mini4WD RPM v6</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
@@ -28,6 +28,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', san
 .conf-label { font-size: 10px; color: #444; letter-spacing: 1px; }
 .conf-bar-wrap { width: 100px; height: 5px; background: #1a1a1a; border-radius: 3px; overflow: hidden; }
 .conf-bar { height: 100%; background: #39ff14; width: 0%; transition: width 0.1s; }
+.level-row { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 14px; }
+.level-label { font-size: 10px; color: #444; letter-spacing: 1px; }
+.level-bar-wrap { width: 160px; height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; position: relative; }
+.level-bar { height: 100%; background: #39ff14; width: 0%; transition: width 0.06s; }
+.level-bar.over { background: #00e5ff; }
+.level-gate { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #ff2d55; left: 30%; }
 .status-badge { display: inline-block; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; padding: 5px 14px; border-radius: 99px; margin-top: 14px; font-weight: 500; }
 .s-idle { background: #1a1a1a; color: #444; border: 1px solid #222; }
 .s-listening { background: #0a1a0a; color: #39ff14; border: 1px solid #39ff1440; }
@@ -73,7 +79,7 @@ canvas { width: 100%; height: 70px; display: block; }
 <div class="app">
   <div class="header">
     <span class="header-title">Mini4WD RPM</span>
-    <span class="header-sub">v5 · precision</span>
+    <span class="header-sub">v6 · proximity</span>
   </div>
 
   <div class="rpm-card">
@@ -86,6 +92,13 @@ canvas { width: 100%; height: 70px; display: block; }
       <div class="conf-bar-wrap"><div class="conf-bar" id="confBar"></div></div>
     </div>
     <div><span class="status-badge s-idle" id="statusBadge">대기 중</span></div>
+    <div class="level-row">
+      <span class="level-label">입력</span>
+      <div class="level-bar-wrap">
+        <div class="level-bar" id="levelBar"></div>
+        <div class="level-gate" id="levelGate" style="display:none"></div>
+      </div>
+    </div>
   </div>
 
   <div class="stats-grid">
@@ -112,12 +125,31 @@ canvas { width: 100%; height: 70px; display: block; }
   </div>
 
   <div class="panel">
+    <div class="panel-title">근접 우선 (가까운 머신만)</div>
+    <div class="toggle-row">
+      <label>볼륨 게이트</label>
+      <div class="tog" id="gateTog" onclick="toggleGate()"></div>
+    </div>
+    <div class="tog-hint">마이크에 바짝 댄 머신만 측정. 문턱보다 작은(=먼) 소리는 무시.</div>
+    <div class="slider-row" id="gateSliderRow" style="margin-top:12px; display:none">
+      <label>근접문턱</label>
+      <input type="range" id="gateLevel" min="5" max="90" step="1" value="30" oninput="updateGate()">
+      <span id="gateLevelVal">30</span>
+    </div>
+    <div class="toggle-row" style="margin-top:14px">
+      <label>최강 피크 모드</label>
+      <div class="tog" id="peakTog" onclick="togglePeak()"></div>
+    </div>
+    <div class="tog-hint">제일 큰 소리(=제일 가까운 머신) 하나만 잡음. 게이트랑 같이 쓰면 좋음.</div>
+  </div>
+
+  <div class="panel">
     <div class="panel-title">정확도 옵션</div>
     <div class="toggle-row">
       <label>기본 주파수 자동판별 (HPS)</label>
       <div class="tog on" id="hpsTog" onclick="toggleHps()"></div>
     </div>
-    <div class="tog-hint">2·3배음을 눌러 진짜 f0를 찾음. 배음이 더 셀 때 RPM 2배 튐 방지.</div>
+    <div class="tog-hint">2·3배음을 눌러 진짜 f0를 찾음. 배음이 더 셀 때 RPM 2배 튐 방지. (최강 피크 모드 켜면 무시됨)</div>
     <div class="toggle-row" style="margin-top:14px">
       <label>노이즈 환경 모드</label>
       <div class="tog" id="noisyTog" onclick="toggleNoisy()"></div>
@@ -168,6 +200,8 @@ let sensThreshold = 20, stabRequired = 3;
 let noiseFloor = null, isCalibrating = false, calibFrames = [], calibCount = 0;
 let consecutiveCount = 0, candidateHz = 0;
 let useHps = true, noisyMode = false;
+let useGate = false, gateLevel = 30, usePeakMode = false;
+let inputLevel = 0;
 
 const $ = id => document.getElementById(id);
 const canvas = $("waveform"), ctx2d = canvas.getContext("2d");
@@ -179,6 +213,9 @@ function updateSens(){ sensThreshold=+$("sensitivity").value; $("sensVal").textC
 function updateStab(){ stabRequired=+$("stability").value; $("stabVal").textContent=stabRequired+"f"; }
 function toggleHps(){ useHps=!useHps; $("hpsTog").classList.toggle("on",useHps); }
 function toggleNoisy(){ noisyMode=!noisyMode; $("noisyTog").classList.toggle("on",noisyMode); }
+function toggleGate(){ useGate=!useGate; $("gateTog").classList.toggle("on",useGate); $("gateSliderRow").style.display=useGate?"flex":"none"; $("levelGate").style.display=useGate?"block":"none"; }
+function updateGate(){ gateLevel=+$("gateLevel").value; $("gateLevelVal").textContent=gateLevel; $("levelGate").style.left=gateLevel+"%"; }
+function togglePeak(){ usePeakMode=!usePeakMode; $("peakTog").classList.toggle("on",usePeakMode); }
 
 function calibrateNoise(){
   if(!isRunning){ alert("마이크를 먼저 시작하세요."); return; }
@@ -246,6 +283,17 @@ function loop(){
   drawSpectrum(buf, sr);
   const peakBin=findPeakMax(buf, sr), peakVal=buf[peakBin];
 
+  // 입력 레벨: 필터 대역 내 상위 에너지 기준 (0~100)
+  const lvMinB=Math.floor(filterMin*analyser.fftSize/sr), lvMaxB=Math.ceil(filterMax*analyser.fftSize/sr);
+  let lvSum=0, lvCnt=0;
+  for(let i=lvMinB;i<=lvMaxB && i<buf.length;i++){ lvSum+=buf[i]; lvCnt++; }
+  const bandAvg=lvCnt?lvSum/lvCnt:0;
+  const rawLevel=Math.round((bandAvg*0.4 + peakVal*0.6)/255*100);
+  inputLevel=Math.round(inputLevel*0.5 + rawLevel*0.5);
+  const lvBar=$("levelBar");
+  lvBar.style.width=Math.min(100,inputLevel)+"%";
+  lvBar.classList.toggle("over", useGate && inputLevel>=gateLevel);
+
   if(isCalibrating){
     calibFrames.push(peakVal); calibCount++;
     $("calibInfo").textContent=`측정중... ${Math.round(calibCount/90*100)}%`;
@@ -263,12 +311,16 @@ function loop(){
   const effThreshold=noisyMode?threshold*0.8:threshold;
   let detected=false;
 
-  if(peakVal>effThreshold){
-    const rawBin=useHps?findF0_HPS(buf, sr):peakBin;
+  // 볼륨 게이트: 근접 문턱 미달이면 아예 측정 안 함
+  const gatePass = !useGate || inputLevel>=gateLevel;
+
+  if(peakVal>effThreshold && gatePass){
+    // 최강 피크 모드면 무조건 제일 센 피크, 아니면 HPS 여부 따름
+    const rawBin=usePeakMode?peakBin:(useHps?findF0_HPS(buf, sr):peakBin);
     const refined=parabolic(buf, rawBin);
     const freq=refined.bin*sr/analyser.fftSize;
     const hScore=harmonicScore(buf, sr, freq);
-    const harmonicOK=noisyMode?(hScore>=1):(hScore>=2);
+    const harmonicOK=usePeakMode?(hScore>=1):(noisyMode?(hScore>=1):(hScore>=2));
     const jumpOK=candidateHz===0 || Math.abs(freq-candidateHz)/Math.max(candidateHz,1)<0.20;
 
     if(harmonicOK){
@@ -300,6 +352,7 @@ function loop(){
   }
 
   if(detected){ $("statusBadge").textContent="감지됨"; $("statusBadge").className="status-badge s-detected"; }
+  else if(useGate && peakVal>effThreshold && inputLevel<gateLevel){ $("statusBadge").textContent="더 가까이"; $("statusBadge").className="status-badge s-calibrating"; }
   else { $("statusBadge").textContent="청취중"; $("statusBadge").className="status-badge s-listening"; }
   animId=requestAnimationFrame(loop);
 }
@@ -310,6 +363,7 @@ async function toggleMic(){
     if(source) source.disconnect(); if(audioCtx) audioCtx.close();
     $("startBtn").textContent="시작"; $("startBtn").classList.remove("active");
     $("statusBadge").textContent="대기 중"; $("statusBadge").className="status-badge s-idle";
+    inputLevel=0; $("levelBar").style.width="0%"; $("levelBar").classList.remove("over");
     ctx2d.clearRect(0,0,canvas.width,canvas.height); return;
   }
   try{

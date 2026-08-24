@@ -1,5 +1,5 @@
-const CACHE = 'mini4wd-rpm-v8';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE = 'mini4wd-rpm-v9';
+const ASSETS = ['./index.html', './manifest.json', './icon-v2-192.png', './icon-v2-512.png'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();

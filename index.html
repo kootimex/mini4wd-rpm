@@ -79,7 +79,7 @@ canvas { width: 100%; height: 70px; display: block; }
 <div class="app">
   <div class="header">
     <span class="header-title">Mini4WD RPM</span>
-    <span class="header-sub">v6 · proximity</span>
+    <span class="header-sub">v6.1 · wakelock</span>
   </div>
 
   <div class="rpm-card">
@@ -202,6 +202,7 @@ let consecutiveCount = 0, candidateHz = 0;
 let useHps = true, noisyMode = false;
 let useGate = false, gateLevel = 30, usePeakMode = false;
 let inputLevel = 0;
+let wakeLock = null;
 
 const $ = id => document.getElementById(id);
 const canvas = $("waveform"), ctx2d = canvas.getContext("2d");
@@ -357,10 +358,23 @@ function loop(){
   animId=requestAnimationFrame(loop);
 }
 
+async function requestWakeLock(){
+  if(!('wakeLock' in navigator)) return;
+  try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+}
+function releaseWakeLock(){
+  if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock=null; }
+}
+// 화면 껐다 켜면 wakeLock이 풀리므로, 측정 중이면 자동 재요청
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && isRunning && !wakeLock){ requestWakeLock(); }
+});
+
 async function toggleMic(){
   if(isRunning){
     isRunning=false; cancelAnimationFrame(animId);
     if(source) source.disconnect(); if(audioCtx) audioCtx.close();
+    releaseWakeLock();
     $("startBtn").textContent="시작"; $("startBtn").classList.remove("active");
     $("statusBadge").textContent="대기 중"; $("statusBadge").className="status-badge s-idle";
     inputLevel=0; $("levelBar").style.width="0%"; $("levelBar").classList.remove("over");
@@ -373,6 +387,7 @@ async function toggleMic(){
     analyser=audioCtx.createAnalyser(); analyser.fftSize=16384; analyser.smoothingTimeConstant=0.3;
     source=audioCtx.createMediaStreamSource(stream); source.connect(analyser);
     isRunning=true;
+    requestWakeLock();
     $("startBtn").textContent="정지"; $("startBtn").classList.add("active");
     $("statusBadge").textContent="청취중"; $("statusBadge").className="status-badge s-listening";
     loop();

@@ -79,7 +79,7 @@ canvas { width: 100%; height: 70px; display: block; }
 <div class="app">
   <div class="header">
     <span class="header-title">Mini4WD RPM</span>
-    <span class="header-sub">v6.1 · wakelock</span>
+    <span class="header-sub">v6.2 · anti-octave</span>
   </div>
 
   <div class="rpm-card">
@@ -155,6 +155,11 @@ canvas { width: 100%; height: 70px; display: block; }
       <div class="tog" id="noisyTog" onclick="toggleNoisy()"></div>
     </div>
     <div class="tog-hint">대회장처럼 시끄러운 곳: 하모닉 검증 완화, 문턱 낮춤.</div>
+    <div class="toggle-row" style="margin-top:14px">
+      <label>2배음 자동교정</label>
+      <div class="tog on" id="subharmTog" onclick="toggleSubharm()"></div>
+    </div>
+    <div class="tog-hint">RPM이 2배로 튀는 현상 억제. f/2에 피크가 있으면 자동으로 절반 보정.</div>
   </div>
 
   <div class="panel">
@@ -203,6 +208,7 @@ let useHps = true, noisyMode = false;
 let useGate = false, gateLevel = 30, usePeakMode = false;
 let inputLevel = 0;
 let wakeLock = null;
+let useSubharm = true;
 
 const $ = id => document.getElementById(id);
 const canvas = $("waveform"), ctx2d = canvas.getContext("2d");
@@ -217,6 +223,7 @@ function toggleNoisy(){ noisyMode=!noisyMode; $("noisyTog").classList.toggle("on
 function toggleGate(){ useGate=!useGate; $("gateTog").classList.toggle("on",useGate); $("gateSliderRow").style.display=useGate?"flex":"none"; $("levelGate").style.display=useGate?"block":"none"; }
 function updateGate(){ gateLevel=+$("gateLevel").value; $("gateLevelVal").textContent=gateLevel; $("levelGate").style.left=gateLevel+"%"; }
 function togglePeak(){ usePeakMode=!usePeakMode; $("peakTog").classList.toggle("on",usePeakMode); }
+function toggleSubharm(){ useSubharm=!useSubharm; $("subharmTog").classList.toggle("on",useSubharm); }
 
 function calibrateNoise(){
   if(!isRunning){ alert("마이크를 먼저 시작하세요."); return; }
@@ -259,6 +266,24 @@ function harmonicScore(buf, sr, freq){
 }
 
 function median(arr){ if(!arr.length) return 0; const s=[...arr].sort((a,b)=>a-b), m=Math.floor(s.length/2); return s.length%2? s[m] : (s[m-1]+s[m])/2; }
+
+// 서브하모닉 체크: freq의 절반(f/2)에 뚜렷한 피크가 있으면
+// 지금 잡은 게 2배음이라는 뜻 → 진짜 f0는 절반. 보정된 주파수를 반환.
+function subharmonicCorrect(buf, sr, freq){
+  const halfFreq = freq/2;
+  // f/2가 필터 하한보다 낮으면 보정 불가 (그 아래는 볼 필요 없음)
+  if(halfFreq < filterMin*0.9) return freq;
+  const halfBin = Math.round(halfFreq*analyser.fftSize/sr);
+  const fBin = Math.round(freq*analyser.fftSize/sr);
+  if(halfBin<1 || halfBin>=buf.length || fBin>=buf.length) return freq;
+  // f/2 근처 ±2bin에서 최대값 탐색 (해상도 여유)
+  let halfMag=0;
+  for(let d=-2; d<=2; d++){ const b=halfBin+d; if(b>=0 && b<buf.length) halfMag=Math.max(halfMag, buf[b]); }
+  const fMag = buf[fBin];
+  // f/2 피크가 현재 피크의 55% 이상으로 존재하면 2배음으로 판단 → 절반으로 보정
+  if(halfMag > fMag*0.55 && halfMag > 20){ return halfFreq; }
+  return freq;
+}
 
 function drawSpectrum(buf, sr){
   const w=canvas.width, h=canvas.height; ctx2d.clearRect(0,0,w,h);
@@ -319,7 +344,23 @@ function loop(){
     // 최강 피크 모드면 무조건 제일 센 피크, 아니면 HPS 여부 따름
     const rawBin=usePeakMode?peakBin:(useHps?findF0_HPS(buf, sr):peakBin);
     const refined=parabolic(buf, rawBin);
-    const freq=refined.bin*sr/analyser.fftSize;
+    let freq=refined.bin*sr/analyser.fftSize;
+
+    // [1] 서브하모닉 보정: f/2에 피크가 있으면 2배음이므로 절반으로 내림
+    if(useSubharm){ freq = subharmonicCorrect(buf, sr, freq); }
+
+    // [2] 2배 급변 거부: 직전 안정값의 딱 2배(또는 절반)로 튀면 그 프레임 교정
+    if(useSubharm){
+      const med0 = median(hzHistory);
+      if(med0>0){
+        const ratio = freq/med0;
+        const isDouble = ratio > 1.8 && ratio < 2.2;   // 2배로 튐
+        const isHalf   = ratio > 0.45 && ratio < 0.55; // 절반으로 튐
+        if(isDouble){ freq = freq/2; }        // 2배 튐 → 절반으로 교정
+        else if(isHalf){ freq = freq*2; }     // 절반 튐 → 2배로 교정
+      }
+    }
+
     const hScore=harmonicScore(buf, sr, freq);
     const harmonicOK=usePeakMode?(hScore>=1):(noisyMode?(hScore>=1):(hScore>=2));
     const jumpOK=candidateHz===0 || Math.abs(freq-candidateHz)/Math.max(candidateHz,1)<0.20;

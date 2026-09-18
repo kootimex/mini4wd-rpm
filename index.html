@@ -18,12 +18,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', san
 .header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
 .header-title { font-size: 13px; font-weight: 500; color: #39ff14; letter-spacing: 2px; text-transform: uppercase; }
 .header-sub { font-size: 11px; color: #444; letter-spacing: 1px; }
+.lang-switch { display: flex; gap: 4px; }
+.lang-btn { padding: 4px 9px; border-radius: 6px; border: 1px solid #222; background: #111; color: #555; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.lang-btn.active { background: #39ff14; color: #0a0a0a; border-color: #39ff14; }
 .rpm-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 24px 20px 18px; text-align: center; margin-bottom: 10px; }
 .main-label { font-size: 11px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
 .main-number { font-size: 72px; font-weight: 700; color: #39ff14; line-height: 1; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
 .main-unit { font-size: 13px; color: #444; margin-top: 4px; letter-spacing: 2px; }
-.sub-display { font-size: 22px; font-weight: 500; color: #00e5ff; margin-top: 12px; letter-spacing: 1px; }
-.sub-unit { font-size: 12px; color: #444; font-weight: 400; }
+.sub-display { font-size: 36px; font-weight: 700; color: #00e5ff; margin-top: 10px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.sub-unit { font-size: 15px; color: #444; font-weight: 500; }
 .conf-row { margin-top: 12px; display: flex; align-items: center; gap: 8px; justify-content: center; }
 .conf-label { font-size: 10px; color: #444; letter-spacing: 1px; }
 .conf-bar-wrap { width: 100px; height: 5px; background: #1a1a1a; border-radius: 3px; overflow: hidden; }
@@ -79,21 +82,25 @@ canvas { width: 100%; height: 70px; display: block; }
 <div class="app">
   <div class="header">
     <span class="header-title">Mini4WD RPM</span>
-    <span class="header-sub">v6.2 · anti-octave</span>
+    <div class="lang-switch">
+      <button class="lang-btn active" id="lang-ko" onclick="setLang('ko')">한</button>
+      <button class="lang-btn" id="lang-ja" onclick="setLang('ja')">日</button>
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+    </div>
   </div>
 
   <div class="rpm-card">
-    <div class="main-label">주파수 (f0)</div>
+    <div class="main-label" data-i18n="mainLabel">주파수 (f0)</div>
     <div class="main-number" id="hzVal">—</div>
     <div class="main-unit">Hz</div>
     <div class="sub-display" id="rpmVal">— <span class="sub-unit">RPM</span></div>
     <div class="conf-row">
-      <span class="conf-label">신뢰도</span>
+      <span class="conf-label" data-i18n="confLabel">신뢰도</span>
       <div class="conf-bar-wrap"><div class="conf-bar" id="confBar"></div></div>
     </div>
     <div><span class="status-badge s-idle" id="statusBadge">대기 중</span></div>
     <div class="level-row">
-      <span class="level-label">입력</span>
+      <span class="level-label" data-i18n="levelLabel">입력</span>
       <div class="level-bar-wrap">
         <div class="level-bar" id="levelBar"></div>
         <div class="level-gate" id="levelGate" style="display:none"></div>
@@ -103,12 +110,12 @@ canvas { width: 100%; height: 70px; display: block; }
 
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">최대 (안정)</div>
+      <div class="stat-label" data-i18n="statMax">최대 (안정)</div>
       <div class="stat-value" id="maxHzStat">—</div>
       <div class="stat-sub" id="maxRpm">— RPM</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">중앙값</div>
+      <div class="stat-label" data-i18n="statMed">중앙값</div>
       <div class="stat-value" id="medHzStat">—</div>
       <div class="stat-sub" id="medRpm">— RPM</div>
     </div>
@@ -121,74 +128,74 @@ canvas { width: 100%; height: 70px; display: block; }
 
   <div class="btn-row">
     <button class="btn-start" id="startBtn" onclick="toggleMic()">시작</button>
-    <button class="btn-reset" onclick="resetStats()">초기화</button>
+    <button class="btn-reset" onclick="resetStats()" data-i18n="reset">초기화</button>
   </div>
 
   <div class="panel">
-    <div class="panel-title">근접 우선 (가까운 머신만)</div>
+    <div class="panel-title" data-i18n="panelProx">근접 우선 (가까운 머신만)</div>
     <div class="toggle-row">
-      <label>볼륨 게이트</label>
+      <label data-i18n="volGate">볼륨 게이트</label>
       <div class="tog" id="gateTog" onclick="toggleGate()"></div>
     </div>
-    <div class="tog-hint">마이크에 바짝 댄 머신만 측정. 문턱보다 작은(=먼) 소리는 무시.</div>
+    <div class="tog-hint" data-i18n="volGateHint">마이크에 바짝 댄 머신만 측정. 문턱보다 작은(=먼) 소리는 무시.</div>
     <div class="slider-row" id="gateSliderRow" style="margin-top:12px; display:none">
-      <label>근접문턱</label>
+      <label data-i18n="proxThresh">근접문턱</label>
       <input type="range" id="gateLevel" min="5" max="90" step="1" value="30" oninput="updateGate()">
       <span id="gateLevelVal">30</span>
     </div>
     <div class="toggle-row" style="margin-top:14px">
-      <label>최강 피크 모드</label>
+      <label data-i18n="peakMode">최강 피크 모드</label>
       <div class="tog" id="peakTog" onclick="togglePeak()"></div>
     </div>
-    <div class="tog-hint">제일 큰 소리(=제일 가까운 머신) 하나만 잡음. 게이트랑 같이 쓰면 좋음.</div>
+    <div class="tog-hint" data-i18n="peakModeHint">제일 큰 소리(=제일 가까운 머신) 하나만 잡음. 게이트랑 같이 쓰면 좋음.</div>
   </div>
 
   <div class="panel">
-    <div class="panel-title">정확도 옵션</div>
+    <div class="panel-title" data-i18n="panelAcc">정확도 옵션</div>
     <div class="toggle-row">
-      <label>기본 주파수 자동판별 (HPS)</label>
+      <label data-i18n="hps">기본 주파수 자동판별 (HPS)</label>
       <div class="tog on" id="hpsTog" onclick="toggleHps()"></div>
     </div>
-    <div class="tog-hint">2·3배음을 눌러 진짜 f0를 찾음. 배음이 더 셀 때 RPM 2배 튐 방지. (최강 피크 모드 켜면 무시됨)</div>
+    <div class="tog-hint" data-i18n="hpsHint">2·3배음을 눌러 진짜 f0를 찾음. 배음이 더 셀 때 RPM 2배 튐 방지. (최강 피크 모드 켜면 무시됨)</div>
     <div class="toggle-row" style="margin-top:14px">
-      <label>노이즈 환경 모드</label>
+      <label data-i18n="noisy">노이즈 환경 모드</label>
       <div class="tog" id="noisyTog" onclick="toggleNoisy()"></div>
     </div>
-    <div class="tog-hint">대회장처럼 시끄러운 곳: 하모닉 검증 완화, 문턱 낮춤.</div>
+    <div class="tog-hint" data-i18n="noisyHint">대회장처럼 시끄러운 곳: 하모닉 검증 완화, 문턱 낮춤.</div>
     <div class="toggle-row" style="margin-top:14px">
-      <label>2배음 자동교정</label>
+      <label data-i18n="subharm">2배음 자동교정</label>
       <div class="tog on" id="subharmTog" onclick="toggleSubharm()"></div>
     </div>
-    <div class="tog-hint">RPM이 2배로 튀는 현상 억제. f/2에 피크가 있으면 자동으로 절반 보정.</div>
+    <div class="tog-hint" data-i18n="subharmHint">RPM이 2배로 튀는 현상 억제. f/2에 피크가 있으면 자동으로 절반 보정.</div>
   </div>
 
   <div class="panel">
-    <div class="panel-title">노이즈 보정</div>
+    <div class="panel-title" data-i18n="panelCalib">노이즈 보정</div>
     <div class="calib-row">
-      <div class="calib-info" id="calibInfo">조용할 때 보정 후 측정하세요</div>
-      <button class="btn-calib" id="calibBtn" onclick="calibrateNoise()">보정</button>
+      <div class="calib-info" id="calibInfo" data-i18n="calibReady">조용할 때 보정 후 측정하세요</div>
+      <button class="btn-calib" id="calibBtn" onclick="calibrateNoise()" data-i18n="calib">보정</button>
     </div>
   </div>
 
   <div class="panel">
-    <div class="panel-title">필터 · 감도</div>
+    <div class="panel-title" data-i18n="panelFilter">필터 · 감도</div>
     <div class="slider-row">
-      <label>최소Hz</label>
-      <input type="range" id="minHz" min="100" max="900" step="10" value="300" oninput="updateFilter()">
-      <span id="minHzVal">300</span>
+      <label data-i18n="minHz">최소Hz</label>
+      <input type="range" id="minHz" min="100" max="900" step="10" value="250" oninput="updateFilter()">
+      <span id="minHzVal">250</span>
     </div>
     <div class="slider-row">
-      <label>최대Hz</label>
+      <label data-i18n="maxHz">최대Hz</label>
       <input type="range" id="maxHz" min="100" max="900" step="10" value="700" oninput="updateFilter()">
       <span id="maxHzVal">700</span>
     </div>
     <div class="slider-row">
-      <label>감도</label>
+      <label data-i18n="sens">감도</label>
       <input type="range" id="sensitivity" min="5" max="80" step="1" value="20" oninput="updateSens()">
       <span id="sensVal">20</span>
     </div>
     <div class="slider-row">
-      <label>안정프레임</label>
+      <label data-i18n="stab">안정프레임</label>
       <input type="range" id="stability" min="1" max="8" step="1" value="3" oninput="updateStab()">
       <span id="stabVal">3f</span>
     </div>
@@ -196,11 +203,96 @@ canvas { width: 100%; height: 70px; display: block; }
 </div>
 
 <script>
+// ===== 다국어(i18n) =====
+const I18N = {
+  ko: {
+    mainLabel:"주파수 (f0)", confLabel:"신뢰도", levelLabel:"입력",
+    statMax:"최대 (안정)", statMed:"중앙값", reset:"초기화",
+    panelProx:"근접 우선 (가까운 머신만)", volGate:"볼륨 게이트",
+    volGateHint:"마이크에 바짝 댄 머신만 측정. 문턱보다 작은(=먼) 소리는 무시.",
+    proxThresh:"근접문턱", peakMode:"최강 피크 모드",
+    peakModeHint:"제일 큰 소리(=제일 가까운 머신) 하나만 잡음. 게이트랑 같이 쓰면 좋음.",
+    panelAcc:"정확도 옵션", hps:"기본 주파수 자동판별 (HPS)",
+    hpsHint:"2·3배음을 눌러 진짜 f0를 찾음. 배음이 더 셀 때 RPM 2배 튐 방지. (최강 피크 모드 켜면 무시됨)",
+    noisy:"노이즈 환경 모드", noisyHint:"대회장처럼 시끄러운 곳: 하모닉 검증 완화, 문턱 낮춤.",
+    subharm:"2배음 자동교정", subharmHint:"RPM이 2배로 튀는 현상 억제. f/2에 피크가 있으면 자동으로 절반 보정.",
+    panelCalib:"노이즈 보정", calibReady:"조용할 때 보정 후 측정하세요", calib:"보정",
+    panelFilter:"필터 · 감도", minHz:"최소Hz", maxHz:"최대Hz", sens:"감도", stab:"안정프레임",
+    start:"시작", stop:"정지",
+    st_idle:"대기 중", st_listening:"청취중", st_detected:"감지됨", st_closer:"더 가까이", st_calib:"보정 중",
+    calibMeasuring:"측정중", calibRecalib:"재보정", calibDone:(n)=>`기준: <b>${n}</b> 완료`,
+    calibProg:(p)=>`측정중... ${p}%`, calibStart:"3초간 주변 소음 측정...",
+    alertMic:"마이크를 먼저 시작하세요.", alertPerm:"마이크 권한이 필요합니다.\n브라우저 설정에서 마이크를 허용해주세요."
+  },
+  ja: {
+    mainLabel:"周波数 (f0)", confLabel:"信頼度", levelLabel:"入力",
+    statMax:"最大 (安定)", statMed:"中央値", reset:"リセット",
+    panelProx:"近接優先 (近いマシンのみ)", volGate:"ボリュームゲート",
+    volGateHint:"マイクに近づけたマシンのみ測定。しきい値より小さい(=遠い)音は無視。",
+    proxThresh:"近接しきい値", peakMode:"最強ピークモード",
+    peakModeHint:"一番大きい音(=一番近いマシン)だけを検出。ゲートと併用推奨。",
+    panelAcc:"精度オプション", hps:"基本周波数 自動判別 (HPS)",
+    hpsHint:"2·3倍音を抑えて本当のf0を検出。倍音が強い時のRPM2倍化を防止。(最強ピークモード時は無効)",
+    noisy:"ノイズ環境モード", noisyHint:"大会場など騒がしい場所向け:ハーモニック検証を緩和、しきい値を下げる。",
+    subharm:"2倍音 自動補正", subharmHint:"RPMが2倍に飛ぶ現象を抑制。f/2にピークがあれば自動で半分に補正。",
+    panelCalib:"ノイズ補正", calibReady:"静かな時に補正してから測定してください", calib:"補正",
+    panelFilter:"フィルター · 感度", minHz:"最小Hz", maxHz:"最大Hz", sens:"感度", stab:"安定フレーム",
+    start:"開始", stop:"停止",
+    st_idle:"待機中", st_listening:"聴取中", st_detected:"検出", st_closer:"もっと近く", st_calib:"補正中",
+    calibMeasuring:"測定中", calibRecalib:"再補正", calibDone:(n)=>`基準: <b>${n}</b> 完了`,
+    calibProg:(p)=>`測定中... ${p}%`, calibStart:"3秒間 周囲のノイズを測定...",
+    alertMic:"先にマイクを開始してください。", alertPerm:"マイクの権限が必要です。\nブラウザ設定でマイクを許可してください。"
+  },
+  en: {
+    mainLabel:"Frequency (f0)", confLabel:"Confidence", levelLabel:"Input",
+    statMax:"Max (stable)", statMed:"Median", reset:"Reset",
+    panelProx:"Proximity Priority (nearest only)", volGate:"Volume Gate",
+    volGateHint:"Measure only machines held close to the mic. Sounds below the threshold (=far) are ignored.",
+    proxThresh:"Prox. Thresh", peakMode:"Strongest Peak Mode",
+    peakModeHint:"Detect only the loudest sound (=nearest machine). Best used with the gate.",
+    panelAcc:"Accuracy Options", hps:"Fundamental Detection (HPS)",
+    hpsHint:"Suppresses 2nd/3rd harmonics to find the true f0. Prevents RPM doubling when harmonics are strong. (Ignored in Peak Mode)",
+    noisy:"Noisy Environment Mode", noisyHint:"For loud places like race venues: relaxes harmonic check, lowers threshold.",
+    subharm:"Anti-Octave Correction", subharmHint:"Suppresses RPM doubling. If a peak exists at f/2, auto-corrects to half.",
+    panelCalib:"Noise Calibration", calibReady:"Calibrate when quiet, then measure", calib:"Calibrate",
+    panelFilter:"Filter · Sensitivity", minHz:"Min Hz", maxHz:"Max Hz", sens:"Sens.", stab:"Stable Frm",
+    start:"Start", stop:"Stop",
+    st_idle:"Idle", st_listening:"Listening", st_detected:"Detected", st_closer:"Get closer", st_calib:"Calibrating",
+    calibMeasuring:"Measuring", calibRecalib:"Recalibrate", calibDone:(n)=>`Baseline: <b>${n}</b> done`,
+    calibProg:(p)=>`Measuring... ${p}%`, calibStart:"Measuring ambient noise for 3s...",
+    alertMic:"Start the mic first.", alertPerm:"Microphone permission is required.\nPlease allow the mic in your browser settings."
+  }
+};
+let lang = localStorage.getItem('rpmLang') || 'ko';
+function t(key){ return (I18N[lang] && I18N[lang][key]) || I18N.ko[key] || key; }
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    if(I18N[lang] && I18N[lang][k]) el.textContent = I18N[lang][k];
+  });
+  document.documentElement.lang = lang;
+  ['ko','ja','en'].forEach(l=>{ const b=document.getElementById('lang-'+l); if(b) b.classList.toggle('active', l===lang); });
+  refreshDynamicTexts();
+}
+function setLang(l){ lang=l; localStorage.setItem('rpmLang', l); applyLang(); }
+// 시작/정지 버튼과 상태 배지 등 현재 상태에 맞는 동적 텍스트 갱신
+function refreshDynamicTexts(){
+  const sb=document.getElementById('startBtn');
+  if(sb) sb.textContent = isRunning ? t('stop') : t('start');
+  const badge=document.getElementById('statusBadge');
+  if(badge){
+    const map={'s-idle':'st_idle','s-listening':'st_listening','s-detected':'st_detected'};
+    for(const c in map){ if(badge.classList.contains(c)){ badge.textContent=t(map[c]); break; } }
+  }
+  const cb=document.getElementById('calibBtn');
+  if(cb && !isCalibrating && !cb.disabled){ cb.textContent = (noiseFloor!==null)? t('calibRecalib') : t('calib'); }
+}
+
 let audioCtx, analyser, source, animId, isRunning = false;
 let maxRpmVal = 0, maxHzStatVal = 0;
 let hzHistory = [];
 let lastHz = 0, lastRpm = 0, confidence = 0;
-let filterMin = 300, filterMax = 700;
+let filterMin = 250, filterMax = 700;
 let sensThreshold = 20, stabRequired = 3;
 let noiseFloor = null, isCalibrating = false, calibFrames = [], calibCount = 0;
 let consecutiveCount = 0, candidateHz = 0;
@@ -226,11 +318,11 @@ function togglePeak(){ usePeakMode=!usePeakMode; $("peakTog").classList.toggle("
 function toggleSubharm(){ useSubharm=!useSubharm; $("subharmTog").classList.toggle("on",useSubharm); }
 
 function calibrateNoise(){
-  if(!isRunning){ alert("마이크를 먼저 시작하세요."); return; }
+  if(!isRunning){ alert(t("alertMic")); return; }
   isCalibrating=true; calibFrames=[]; calibCount=0;
-  $("calibBtn").textContent="측정중"; $("calibBtn").disabled=true;
-  $("calibInfo").textContent="3초간 주변 소음 측정...";
-  $("statusBadge").textContent="보정 중"; $("statusBadge").className="status-badge s-calibrating";
+  $("calibBtn").textContent=t("calibMeasuring"); $("calibBtn").disabled=true;
+  $("calibInfo").textContent=t("calibStart");
+  $("statusBadge").textContent=t("st_calib"); $("statusBadge").className="status-badge s-calibrating";
 }
 
 function parabolic(buf, idx){
@@ -322,13 +414,13 @@ function loop(){
 
   if(isCalibrating){
     calibFrames.push(peakVal); calibCount++;
-    $("calibInfo").textContent=`측정중... ${Math.round(calibCount/90*100)}%`;
+    $("calibInfo").textContent=t("calibProg")(Math.round(calibCount/90*100));
     if(calibCount>=90){
       isCalibrating=false;
       noiseFloor=Math.max(Math.round(calibFrames.reduce((a,b)=>a+b,0)/calibFrames.length*1.3), sensThreshold);
-      $("calibBtn").textContent="재보정"; $("calibBtn").disabled=false;
-      $("calibInfo").innerHTML=`기준: <b>${noiseFloor}</b> 완료`;
-      $("statusBadge").textContent="청취중"; $("statusBadge").className="status-badge s-listening";
+      $("calibBtn").textContent=t("calibRecalib"); $("calibBtn").disabled=false;
+      $("calibInfo").innerHTML=t("calibDone")(noiseFloor);
+      $("statusBadge").textContent=t("st_listening"); $("statusBadge").className="status-badge s-listening";
     }
     animId=requestAnimationFrame(loop); return;
   }
@@ -393,9 +485,9 @@ function loop(){
     $("medRpm").textContent=Math.round(med*60).toLocaleString()+" RPM";
   }
 
-  if(detected){ $("statusBadge").textContent="감지됨"; $("statusBadge").className="status-badge s-detected"; }
-  else if(useGate && peakVal>effThreshold && inputLevel<gateLevel){ $("statusBadge").textContent="더 가까이"; $("statusBadge").className="status-badge s-calibrating"; }
-  else { $("statusBadge").textContent="청취중"; $("statusBadge").className="status-badge s-listening"; }
+  if(detected){ $("statusBadge").textContent=t("st_detected"); $("statusBadge").className="status-badge s-detected"; }
+  else if(useGate && peakVal>effThreshold && inputLevel<gateLevel){ $("statusBadge").textContent=t("st_closer"); $("statusBadge").className="status-badge s-calibrating"; }
+  else { $("statusBadge").textContent=t("st_listening"); $("statusBadge").className="status-badge s-listening"; }
   animId=requestAnimationFrame(loop);
 }
 
@@ -416,8 +508,8 @@ async function toggleMic(){
     isRunning=false; cancelAnimationFrame(animId);
     if(source) source.disconnect(); if(audioCtx) audioCtx.close();
     releaseWakeLock();
-    $("startBtn").textContent="시작"; $("startBtn").classList.remove("active");
-    $("statusBadge").textContent="대기 중"; $("statusBadge").className="status-badge s-idle";
+    $("startBtn").textContent=t("start"); $("startBtn").classList.remove("active");
+    $("statusBadge").textContent=t("st_idle"); $("statusBadge").className="status-badge s-idle";
     inputLevel=0; $("levelBar").style.width="0%"; $("levelBar").classList.remove("over");
     ctx2d.clearRect(0,0,canvas.width,canvas.height); return;
   }
@@ -429,10 +521,10 @@ async function toggleMic(){
     source=audioCtx.createMediaStreamSource(stream); source.connect(analyser);
     isRunning=true;
     requestWakeLock();
-    $("startBtn").textContent="정지"; $("startBtn").classList.add("active");
-    $("statusBadge").textContent="청취중"; $("statusBadge").className="status-badge s-listening";
+    $("startBtn").textContent=t("stop"); $("startBtn").classList.add("active");
+    $("statusBadge").textContent=t("st_listening"); $("statusBadge").className="status-badge s-listening";
     loop();
-  }catch(e){ alert("마이크 권한이 필요합니다.\n브라우저 설정에서 마이크를 허용해주세요."); }
+  }catch(e){ alert(t("alertPerm")); }
 }
 
 function resetStats(){
@@ -440,6 +532,8 @@ function resetStats(){
   $("hzVal").textContent="—"; $("rpmVal").innerHTML=`— <span class="sub-unit">RPM</span>`;
   $("maxHzStat").textContent="—"; $("maxRpm").textContent="— RPM"; $("medHzStat").textContent="—"; $("medRpm").textContent="— RPM"; $("confBar").style.width="0%";
 }
+
+applyLang();
 
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
 </script>
